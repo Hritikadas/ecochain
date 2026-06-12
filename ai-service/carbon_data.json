@@ -1,0 +1,25 @@
+{
+  "commute_factors": {
+    "car": 0.17,
+    "bus": 0.09,
+    "metro": 0.05,
+    "bike": 0,
+    "walk": 0
+  },
+  "diet_factors": {
+    "meat": 1.5,
+    "vegetarian": 1.0,
+    "vegan": 0.8
+  },
+  "electricity_factor": 0.5,
+  "tips": {
+    "car": "Switch to metro or bus to save 0.12 kg CO2/km",
+    "bus": "Consider metro for even lower emissions",
+    "metro": "Great choice! You're already low-emission",
+    "bike": "Perfect! Zero emissions",
+    "walk": "Perfect! Zero emissions",
+    "meat": "Try vegetarian for 0.5 kg CO2/day savings",
+    "vegetarian": "Try vegan for 0.2 kg CO2/day savings",
+    "vegan": "Excellent! You're already low-emission"
+  }
+}

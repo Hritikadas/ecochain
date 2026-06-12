@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Local Databases & Environmental configs
+*.db
+*.db-journal
+.env
+.env.local
+.env.production
+
+# Production Builds
+frontend/dist/
+backend/dist/
+
+# IDE files
+.vscode/
+.idea/
