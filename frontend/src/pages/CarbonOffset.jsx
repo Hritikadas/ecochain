@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Chart as ChartJS, ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import { loadStripe } from '@stripe/stripe-js';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
 
-ChartJS.register(ArcElement, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(ArcElement, Tooltip, Legend);
+
+// Initialize Stripe Client with a dummy test key placeholder
+const stripePromise = loadStripe('pk_test_51PlaceholderKeyHere');
 
 function CarbonOffset() {
   const [amount, setAmount] = useState(10);
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [activeProvider, setActiveProvider] = useState('stripe');
 
   useEffect(() => {
     fetchHistory();
@@ -17,189 +22,213 @@ function CarbonOffset() {
 
   const fetchHistory = async () => {
     try {
+      // 🎯 Pattern A: Clean relative pathing passing securely through your proxy matrix
       const response = await axios.get('/api/offset/user/1');
-      setHistory(response.data);
+      setHistory(response.data || []);
     } catch (error) {
-      console.error('Error fetching history:', error);
+      console.error('Error fetching impact parameters:', error);
     }
   };
 
-  const handleBuy = async () => {
+  const handleSimulatedStripePayment = async (e) => {
+    e.preventDefault();
     if (amount < 1) {
-      alert('Minimum amount is $1');
+      alert('Minimum tracking threshold is $1.');
       return;
     }
-
     setLoading(true);
-    
     try {
-      const response = await axios.post('/api/offset/buy', {
-        user_id: 1, // Mock user ID for demo purposes
+      // 1. Post to your updated relative endpoint
+      const createResponse = await axios.post('/api/offset/buy-stripe', {
+        user_id: 1,
+        amount_usd: amount,
+        email: 'founder@ecochain.io',
+        name: 'Hritika Das'
+      });
+
+      const { payment_intent_id } = createResponse.data;
+
+      // 2. Intentional micro-delay to simulate secure banking gateway handshakes
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      // 3. Complete structural data logging loop with backend configuration
+      const confirmResponse = await axios.post('/api/offset/confirm-stripe', {
+        user_id: 1,
+        payment_intent_id: payment_intent_id,
         amount_usd: amount
       });
 
-      setResult(response.data);
-      fetchHistory();
-      alert('✅ Carbon credits purchased successfully!');
+      setResult(confirmResponse.data);
+      alert('💳 Payment Verified! Relational schemas synchronized inside ecochain.db');
+      setAmount(10);
+      await fetchHistory();
     } catch (error) {
-      console.error('Error buying offset:', error);
-      alert('Failed to purchase carbon credits. Make sure your backend offset route is implemented.');
+      console.error('Gateway processing fault:', error);
+      alert(`❌ Transaction Declined: ${error.response?.data?.error || error.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Chart data configuration mapping for historical milestones
-  const chartData = history.length > 0 ? {
-    labels: history.map((h, i) => `Offset Batch ${i + 1}`),
-    datasets: [{
-      label: 'Trees Planted',
-      data: history.map(h => h.trees_planted),
-      backgroundColor: ['#4caf50', '#2e7d32', '#81c784', '#66bb6a', '#a5d6a7']
-    }]
-  } : null;
-
   const totalTrees = history.reduce((sum, h) => sum + h.trees_planted, 0);
   const totalSpent = history.reduce((sum, h) => sum + h.amount_usd, 0);
 
+  const chartData = history.length > 0 ? {
+    labels: ['Processed Offsets', 'Remaining Goal Space'],
+    datasets: [{
+      data: [totalTrees, Math.max(10, 100 - totalTrees)],
+      backgroundColor: ['#10b981', '#f1f5f9'],
+      borderColor: ['#059669', '#e2e8f0'],
+      borderWidth: 1
+    }]
+  } : null;
+
   return (
-    <div style={{ padding: '30px', fontFamily: 'sans-serif', maxWidth: '1200px', margin: '0 auto' }}>
-      <h1 style={{ color: '#2e7d32', margin: '0 0 10px 0' }}>🌳 Carbon Offset Marketplace</h1>
-      <p style={{ margin: '0 0 30px 0', color: '#64748b' }}>Mitigate your carbon footprint by funding transparent reforestation initiatives tracked on-chain.</p>
+    <div className="max-w-7xl mx-auto px-6 py-10 font-sans antialiased text-slate-800">
       
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px' }}>
-        {/* Buy Carbon Credits Column */}
-        <div style={{ padding: '25px', background: '#e8f5e9', borderRadius: '12px', border: '1px solid #c8e6c9', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
-          <h3 style={{ marginTop: 0, color: '#1b5e20' }}>🌱 Buy Carbon Credits</h3>
-          <p style={{ fontSize: '14px', color: '#475569', marginBottom: '20px' }}>
-            Each $1 plants 0.5 trees. Your contribution directly funds transparent, verified global carbon sinks.
-          </p>
-
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{ fontWeight: 'bold', fontSize: '14px', display: 'block', marginBottom: '8px' }}>Investment Amount (USD):</label>
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              <input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-                min="1"
-                step="1"
-                style={{ 
-                  width: '140px', 
-                  padding: '10px', 
-                  fontSize: '16px',
-                  border: '2px solid #2e7d32',
-                  borderRadius: '6px',
-                  outline: 'none'
-                }}
-              />
-              <span style={{ padding: '10px 18px', background: '#2e7d32', color: 'white', borderRadius: '6px', fontWeight: 'bold' }}>
-                USD ($)
-              </span>
-            </div>
-          </div>
-
-          {/* Real-time Environmental Metric Impact Previews */}
-          <div style={{ padding: '15px', background: 'white', borderRadius: '8px', marginBottom: '25px', border: '1px solid #e2e8f0' }}>
-            <p style={{ margin: '5px 0', fontSize: '14px', color: '#334155' }}>
-              💚 You'll plant: <strong style={{ color: '#2e7d32' }}>{Math.floor(amount * 0.5)} trees</strong>
-            </p>
-            <p style={{ margin: '5px 0', fontSize: '14px', color: '#334155' }}>
-              🌍 CO2 offset equivalent: <strong style={{ color: '#2e7d32' }}>{(amount * 0.1).toFixed(1)} tons</strong>
-            </p>
-          </div>
-
-          <button 
-            onClick={handleBuy}
-            disabled={loading}
-            style={{ 
-              padding: '14px 24px', 
-              background: loading ? '#cbd5e1' : '#2e7d32', 
-              color: 'white', 
-              border: 'none', 
-              cursor: loading ? 'not-allowed' : 'pointer',
-              borderRadius: '6px',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              width: '100%',
-              boxShadow: '0 4px 6px rgba(46, 125, 50, 0.15)',
-              transition: 'background 0.2s'
-            }}
-          >
-            {loading ? '🔄 Processing Blockchain Settlement...' : '🌳 Retire Credits via Stellar'}
-          </button>
-
-          {/* Automated On-Chain Settlement Success Message Box */}
-          {result && (
-            <div style={{ marginTop: '20px', padding: '15px', background: '#c8e6c9', borderRadius: '8px', border: '1px solid #4caf50' }}>
-              <h4 style={{ margin: '0 0 10px 0', color: '#2e7d32' }}>✅ Settlement Successful!</h4>
-              <p style={{ margin: '5px 0', fontSize: '14px' }}>
-                Your retirement allocation of <strong>${result.amount_usd}</strong> successfully planted <strong>{result.trees_planted} trees</strong>.
-              </p>
-              <p style={{ margin: '5px 0', fontSize: '12px', color: '#475569', wordBreak: 'break-all' }}>
-                🔗 <strong>Stellar Ledger Hash:</strong> <code style={{ background: 'rgba(255,255,255,0.6)', padding: '2px 5px', borderRadius: '3px' }}>{result.transaction_hash}</code>
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* User's Historical Offset Analysis Column */}
-        <div style={{ padding: '25px', background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
-          <h3 style={{ marginTop: 0, color: '#334155' }}>📊 Your Cumulative Impact</h3>
-          
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '25px' }}>
-            <div style={{ padding: '15px', background: '#e8f5e9', borderRadius: '8px', textAlign: 'center', border: '1px solid #c8e6c9' }}>
-              <p style={{ margin: '0', fontSize: '13px', color: '#64748b', fontWeight: '600' }}>Total Trees Funded</p>
-              <p style={{ margin: '5px 0 0 0', fontSize: '28px', color: '#2e7d32', fontWeight: 'bold' }}>{totalTrees}</p>
-            </div>
-            <div style={{ padding: '15px', background: '#e3f2fd', borderRadius: '8px', textAlign: 'center', border: '1px solid #bbdefb' }}>
-              <p style={{ margin: '0', fontSize: '13px', color: '#64748b', fontWeight: '600' }}>Total Retires (USD)</p>
-              <p style={{ margin: '5px 0 0 0', fontSize: '28px', color: '#1976d2', fontWeight: 'bold' }}>${totalSpent}</p>
-            </div>
-          </div>
-
-          {/* Interactive Chart.js Framework Injection Layer */}
-          {chartData ? (
-            <div style={{ marginBottom: '25px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#475569', width: '100%', textAlign: 'left' }}>Trees Planted Breakdown Per Batch</h4>
-              <div style={{ width: '220px', height: '220px' }}>
-                <Pie data={chartData} options={{ responsive: true, maintainAspectRatio: true }} />
-              </div>
-            </div>
-          ) : null}
-
-          {/* History Transactions Feed Index Layer */}
-          <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#475569' }}>Recent Credit Retirement Receipts</h4>
-          {history.length > 0 ? (
-            <div style={{ maxHeight: '180px', overflowY: 'auto', paddingRight: '5px' }}>
-              {history.slice(0, 5).map((offset, index) => (
-                <div key={index} style={{ padding: '12px', background: '#f8fafc', borderRadius: '6px', marginBottom: '8px', border: '1px solid #e2e8f0', fontSize: '13px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: '600' }}>
-                    <span style={{ color: '#2e7d32' }}>💚 Retires: ${offset.amount_usd}</span>
-                    <span style={{ color: '#475569' }}>🌳 {offset.trees_planted} Trees</span>
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>
-                    Stamped on: {new Date(offset.created_at).toLocaleDateString()}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p style={{ textAlign: 'center', color: '#94a3b8', fontSize: '14px', marginTop: '30px' }}>
-              No credits retired yet. Complete an asset purchase to generate history.
-            </p>
-          )}
-        </div>
+      {/* HEADER ROW */}
+      <div className="mb-10 bg-slate-900 border border-slate-800 p-8 rounded-2xl text-white relative overflow-hidden shadow-xl">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl"></div>
+        <h1 className="text-3xl font-black tracking-tight mb-2">🌳 Carbon Offset Marketplace</h1>
+        <p className="text-slate-400 text-xs max-w-2xl">
+          Deploy capital assets towards carbon credit liquidation. Transactions undergo cryptographic verification loops connected directly to persistent relational server schemas.
+        </p>
       </div>
 
-      {/* 🟩 FIXED: Consolidated border style definition cleanly inside quotes string */}
-      <div style={{ marginTop: '30px', padding: '20px', background: '#fff3e0', borderRadius: '12px', border: '1px solid #ff9800' }}>
-        <h3 style={{ margin: '0 0 12px 0', color: '#e65100', display: 'flex', alignItems: 'center', gap: '8px' }}>🌐 Cryptographic Carbon Verification Engine</h3>
-        <ul style={{ margin: '0', paddingLeft: '20px', lineHeight: '1.8', color: '#475569', fontSize: '14px' }}>
-          <li>All credit assets purchases undergo automated programmatic mint transactions settled over the <strong>Stellar Blockchain</strong> framework layer.</li>
-          <li>Capital value allocations route directly toward audit-verified international tree plantations networks.</li>
-          <li>On-chain parameters record cryptographic receipts immutably to prevent duplicate corporate credit counting (double-spending greenwashing attacks).</li>
-        </ul>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* INTERACTION COLUMN */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* PROVIDER SELECTOR */}
+          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">Select Active Settlement Gateway</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <button 
+                onClick={() => setActiveProvider('stripe')}
+                className={`p-4 rounded-xl font-bold text-sm border transition-all cursor-pointer ${activeProvider === 'stripe' ? 'bg-emerald-50 text-emerald-700 border-emerald-300 shadow-inner' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}`}
+              >
+                💳 Stripe Merchant Gateway
+              </button>
+              <button 
+                disabled
+                className="p-4 rounded-xl font-bold text-sm border bg-slate-50 text-slate-400 border-slate-100 cursor-not-allowed opacity-50 flex items-center justify-center gap-1"
+              >
+                🔒 Stellar Ledger (In Build)
+              </button>
+            </div>
+          </div>
+
+          {/* SIMULATED GATEWAY WARNING PANEL */}
+          <div className="bg-amber-50/60 border border-amber-200 p-5 rounded-xl flex items-start gap-3">
+            <span className="text-xl">🧪</span>
+            <div>
+              <h4 className="text-sm font-bold text-amber-800 uppercase tracking-wide">Developer Sandbox Active</h4>
+              <p className="text-xs text-amber-700 mt-1 leading-relaxed">
+                Running behind standard Merchant Test Profiles. Gateway accepts automated token requests matching structural mock metrics natively.
+              </p>
+            </div>
+          </div>
+
+          {/* LIQUIDATION FORM */}
+          <div className="bg-white p-6 md:p-8 rounded-xl border border-slate-200 shadow-xs">
+            <h3 className="text-lg font-bold tracking-tight mb-2">Capital Injection Parameters</h3>
+            <p className="text-slate-500 text-xs mb-6">Each $1 USD allocation systematically sponsors the deployment of 0.5 physical flora units.</p>
+            
+            <form onSubmit={handleSimulatedStripePayment} className="space-y-6">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Contribution Magnitude (USD)</label>
+                <div className="flex items-center gap-2 max-w-xs">
+                  <input 
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(Math.max(1, parseFloat(e.target.value) || 0))}
+                    className="w-full p-3 bg-slate-50 rounded-xl border border-slate-300 font-bold focus:outline-none focus:border-emerald-600 focus:bg-white transition-all"
+                  />
+                  <span className="px-4 py-3 bg-slate-900 text-white font-bold text-sm rounded-xl">$</span>
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-2 max-w-md">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Flora Units Planted:</span>
+                  <strong className="text-emerald-700">{Math.floor(amount * 0.5)} Trees</strong>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Standard Network Fee:</span>
+                  <strong className="text-slate-600">2.9% + $0.30</strong>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full max-w-md py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-xl shadow-md cursor-pointer disabled:bg-slate-300 disabled:cursor-not-allowed transition-all"
+              >
+                {loading ? 'Executing Secure Gateway Connection...' : `Authorize Stripe Settlement ($${amount}.00)`}
+              </button>
+            </form>
+
+            {/* RESULTS RENDERING DISPLAY */}
+            {result && (
+              <div className="mt-6 p-5 bg-emerald-50/50 border border-emerald-200 rounded-xl space-y-2 animate-fadeIn">
+                <h4 className="text-sm font-bold text-emerald-800 flex items-center gap-1.5">✅ API Operational Sync Complete</h4>
+                <p className="text-xs text-slate-600">Sponsoring Allocation payload bound successfully to isolated entry row.</p>
+                <div className="text-[11px] font-mono bg-white p-2 rounded border border-emerald-100 text-slate-500 break-all mt-2">
+                  LEDGER_REF_ID: {result.payment_intent_id || `stripe_mock_intent_${Date.now()}`}
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+
+        {/* METRICS & METADATA COLUMN */}
+        <div className="space-y-6">
+          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
+            <h3 className="text-base font-bold tracking-tight mb-4 border-b border-slate-100 pb-2">Your Ecological Impact</h3>
+            
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/60 text-center">
+                <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Aggregate Trees</div>
+                <div className="text-2xl font-black text-emerald-600 mt-1">{totalTrees}</div>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/60 text-center">
+                <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Capital Invested</div>
+                <div className="text-2xl font-black text-blue-600 mt-1">${totalSpent}</div>
+              </div>
+            </div>
+
+            {chartData && (
+             <div className="max-w-50 mx-auto mb-4">
+                <Pie data={chartData} options={{ plugins: { legend: { display: false } } }} />
+              </div>
+            )}
+          </div>
+
+          {/* HISTORICAL REGISTRY SUMMARY LIST */}
+          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-xs">
+            <h3 className="text-sm font-bold tracking-tight text-slate-700 uppercase mb-3">Recent Offset Index</h3>
+            {history.length === 0 ? (
+              <p className="text-xs text-slate-400 py-4 text-center">No structural logs found inside database.</p>
+            ) : (
+              <div className="space-y-3 max-h-62.5 overflow-y-auto pr-1">
+                {history.slice(0, 5).map((log, index) => (
+                  <div key={index} className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs flex justify-between items-center">
+                    <div>
+                      <div className="font-bold text-slate-800">${log.amount_usd} Real Assets</div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">{new Date(log.created_at).toLocaleDateString()}</div>
+                    </div>
+                    <span className="px-2.5 py-1 bg-emerald-600 text-white rounded-md font-mono text-[10px] font-bold">
+                      +{log.trees_planted} Units
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+        </div>
       </div>
     </div>
   );
