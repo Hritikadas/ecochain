@@ -1,7 +1,7 @@
 # 🌱 EcoChain
 
 > **A Full-Stack, Blockchain-Powered Sustainability Matrix** featuring transparent carbon footprint analytics, local RAG computation compliance, and an immutable decentralized green asset marketplace.
-
+[![License: Proprietary](https://img.shields.io/badge/License-Proprietary__All__Rights__Reserved-red?style=flat-square&logo=gitguardian&logoColor=white)](LICENSE)
 [![Framework: React 19](https://img.shields.io/badge/Frontend-React_19__Vite-61dafb?style=flat-square&logo=react)](https://react.dev/)
 [![Tailwind: v4.0](https://img.shields.io/badge/Styling-Tailwind_v4.0-06b6d4?style=flat-square&logo=tailwindcss)](https://tailwindcss.com/)
 [![Backend: Node.js / Express](https://img.shields.io/badge/Backend-Node.js___Express-339933?style=flat-square&logo=node.js)](https://nodejs.org/)
