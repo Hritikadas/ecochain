@@ -16,7 +16,7 @@ export default defineConfig({
       // Catches all relative front-facing /api fetch strings and intercepts them 
       // directly into your live SQLite/Express server context on port 3001.
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'https://ecochain-epiu.onrender.com',
         changeOrigin: true,
         secure: false,
       }
