@@ -69,6 +69,7 @@ const App = () => {
             <Route path="/footprint" element={<CarbonFootprint />} />
             <Route path="/achievements" element={<Achievements />} />
             <Route path="/certificates" element={<Certificates />} />
+            <Route path="/" element={<Landing />} />
           </Routes>
         </div>
 
