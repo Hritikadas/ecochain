@@ -7,6 +7,7 @@ import CarbonFootprint from './pages/CarbonFootprint.jsx';
 import Achievements from './pages/Achievements.jsx';
 import Certificates from './pages/Certificates.jsx';
 import Landing from './pages/Landing.jsx'
+import GetStarted from './pages/GetStarted';
 
 // Custom wrapper to dynamically apply active tab styling using Tailwind
 const NavigationLinks = () => {
@@ -70,6 +71,8 @@ const App = () => {
             <Route path="/achievements" element={<Achievements />} />
             <Route path="/certificates" element={<Certificates />} />
             <Route path="/" element={<Landing />} />
+            <Route path="/get-started" element={<GetStarted />} />
+            {/* ... bind /signup, /login, and standard user ledger profile trees next */}
           </Routes>
         </div>
 

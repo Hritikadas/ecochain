@@ -22,10 +22,11 @@ function Landing() {
           </p>
           <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
             <Link 
-              to="/footprint"
+              to="/get-started" 
               className="w-full sm:w-auto inline-flex justify-center items-center px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-bold text-sm rounded-xl shadow-md transition-all duration-150"
             >
               🚀 Launch Analyzer Terminal
+
             </Link>
             <a 
               href="#architecture"

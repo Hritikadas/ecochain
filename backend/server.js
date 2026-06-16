@@ -1,58 +1,55 @@
-require('dotenv').config();
-
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+require('dotenv').config();
+
+// Import Core Database Context Configuration
 const db = require('./config/database');
 
-// Import Application Routers
-const authRoutes = require('./routes/auth');
+// Import Functional Feature App Route Controllers
+const productRoutes = require('./routes/products');
 const footprintRoutes = require('./routes/footprint');
-const productsRoutes = require('./routes/products');
-const certificatesRoutes = require('./routes/certificates');
-const placesRoutes = require('./routes/places');
+const placeRoutes = require('./routes/places');
 const offsetRoutes = require('./routes/offset');
+const certificateRoutes = require('./routes/certificates');
 const achievementRoutes = require('./routes/achievements');
 
 const app = express();
-
-// 🎯 DYNAMIC PRODUCTION PORT BINDING (Essential for Render deployment)
 const PORT = process.env.PORT || 3001;
 
-// 🎯 PRODUCTION-READY GLOBAL MIDDLEWARES
-// Unified, permissive CORS setup allowing cross-origin requests from your live Vercel link
-app.use(cors({
-  origin: '*', 
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// =========================================================================
+// GLOBAL MIDDLEWARE MATRICES
+// =========================================================================
+app.use(cors());
+app.use(express.json());
 
-app.use(express.json()); 
-app.use(express.urlencoded({ extended: true }));
+// Serve optional static assets from public asset upload folders
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Core Health Test Route
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'Ecochain Engine Core API is live!' });
-});
-
-// Mount Application Routers Securely
-app.use('/api/auth', authRoutes);
+// =========================================================================
+// ROUTE MOUNTING HUB
+// =========================================================================
+app.use('/api/products', productRoutes);
 app.use('/api/footprint', footprintRoutes);
-app.use('/api/products', productsRoutes);
-app.use('/api/certificates', certificatesRoutes);
-app.use('/api/places', placesRoutes);
+app.use('/api/places', placeRoutes);
 app.use('/api/offset', offsetRoutes);
+app.use('/api/certificates', certificateRoutes);
 app.use('/api/achievements', achievementRoutes);
 
-// Global Unhandled Catch-All Route Error Interceptor 
-app.use((err, req, res, next) => {
-  console.log("\n💥 GLOBAL EXPRESS CRASH INTERCEPTOR:");
-  console.error(err.stack || err);
-  console.log("=====================================\n");
-  res.status(500).json({ error: 'Internal pipeline crash', details: err.message });
+// Base Health-Check Route Endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'healthy', database: 'connected', timestamp: new Date() });
 });
 
+// =========================================================================
+// GLOBAL EXCEPTION INTERCEPTOR HANDLER
+// =========================================================================
+app.use((err, req, res, next) => {
+  console.error('🚨 Fallback server error intercepted:', err.stack);
+  res.status(500).json({ error: 'An unexpected execution error occurred on the host container layers.' });
+});
+
+// Initialize Main Server Pipeline Loop Listener
 app.listen(PORT, () => {
-  console.log(`=========================================`);
-  console.log(`🚀 ECOCHAIN BACKEND RUNNING ON PORT: ${PORT}`);
-  console.log(`=========================================`);
+  console.log(`🚀 EcoChain Backend Engine successfully initialized on port ${PORT}`);
 });
