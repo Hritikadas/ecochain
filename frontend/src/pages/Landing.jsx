@@ -48,22 +48,19 @@ function Landing() {
             </h2>
           </div>
           <div className="space-y-4">
-            {/* CARD 1 FIX: CHANGED border-rose-500 TO border-l-rose-500 */}
-            <div className="card border-l-4 border-l-rose-500 bg-white p-5 rounded-r-xl border-y border-r border-slate-200 shadow-xs">
+            <div className="border-l-4 border-l-rose-500 bg-white p-5 rounded-r-xl border-y border-r border-slate-200 shadow-xs">
               <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">01 / Fragmented Tracking</h3>
               <p className="text-slate-600 text-xs leading-relaxed mt-2">
                 Consumers struggle to calculate precise personal ecological footprints due to legacy data silo systems and lacking actionable computational pipelines.
               </p>
             </div>
-            {/* CARD 2 FIX: CHANGED border-rose-500 TO border-l-rose-500 */}
-            <div className="card border-l-4 border-l-rose-500 bg-white p-5 rounded-r-xl border-y border-r border-slate-200 shadow-xs">
+            <div className="border-l-4 border-l-rose-500 bg-white p-5 rounded-r-xl border-y border-r border-slate-200 shadow-xs">
               <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">02 / Pervasive Greenwashing</h3>
               <p className="text-slate-600 text-xs leading-relaxed mt-2">
                 Corporate eco-labeling frequently masks deceptive sustainability claims with zero open auditing protocols or transparent historical compliance records.
               </p>
             </div>
-            {/* CARD 3 FIX: CHANGED border-rose-500 TO border-l-rose-500 */}
-            <div className="card border-l-4 border-l-rose-500 bg-white p-5 rounded-r-xl border-y border-r border-slate-200 shadow-xs">
+            <div className="border-l-4 border-l-rose-500 bg-white p-5 rounded-r-xl border-y border-r border-slate-200 shadow-xs">
               <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wide">03 / Supply-Chain Isolation</h3>
               <p className="text-slate-600 text-xs leading-relaxed mt-2">
                 Critical regional assets such as EV chargers, verified upcycling facilities, and organic distributions remain structurally fragmented and hard to locate.
@@ -80,22 +77,22 @@ function Landing() {
             </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="card p-5 bg-white border border-slate-200 rounded-xl shadow-xs hover:border-slate-300 transition-colors">
+            <div className="p-5 bg-white border border-slate-200 rounded-xl shadow-xs hover:border-slate-300 transition-colors">
               <div className="text-2xl mb-3 text-emerald-600">🤖</div>
               <h4 className="font-bold text-slate-900 text-sm">AI Carbon Tracker</h4>
               <p className="text-slate-500 text-xs mt-1.5 leading-relaxed">Dynamic emission tracking enhanced via local data engine processing prompts.</p>
             </div>
-            <div className="card p-5 bg-white border border-slate-200 rounded-xl shadow-xs hover:border-slate-300 transition-colors">
+            <div className="p-5 bg-white border border-slate-200 rounded-xl shadow-xs hover:border-slate-300 transition-colors">
               <div className="text-2xl mb-3 text-emerald-600">🔗</div>
               <h4 className="font-bold text-slate-900 text-sm">On-Chain Marketplace</h4>
               <p className="text-slate-500 text-xs mt-1.5 leading-relaxed">Minting tamper-proof transactional metadata certificates natively onto the Stellar network.</p>
             </div>
-            <div className="card p-5 bg-white border border-slate-200 rounded-xl shadow-xs hover:border-slate-300 transition-colors">
+            <div className="p-5 bg-white border border-slate-200 rounded-xl shadow-xs hover:border-slate-300 transition-colors">
               <div className="text-2xl mb-3 text-emerald-600">🗺️</div>
               <h4 className="font-bold text-slate-900 text-sm">Geospatial Eco Map</h4>
               <p className="text-slate-500 text-xs mt-1.5 leading-relaxed">Interactive spatial mapping interface tracking nearby sustainable points using Leaflet loops.</p>
             </div>
-            <div className="card p-5 bg-white border border-slate-200 rounded-xl shadow-xs hover:border-slate-300 transition-colors">
+            <div className="p-5 bg-white border border-slate-200 rounded-xl shadow-xs hover:border-slate-300 transition-colors">
               <div className="text-2xl mb-3 text-emerald-600">🏆</div>
               <h4 className="font-bold text-slate-900 text-sm">Gamified Ledgers</h4>
               <p className="text-slate-500 text-xs mt-1.5 leading-relaxed">Automated user rankings derived from relational SQLite sum aggregation sequences.</p>
@@ -142,11 +139,11 @@ function Landing() {
       <div className="text-center mb-16 max-w-4xl mx-auto">
         <h2 className="text-xl font-bold text-slate-900 tracking-tight mb-6">🎯 Target Module Navigation</h2>
         <div className="flex gap-3 flex-wrap justify-center">
-          <Link to="/footprint" className="btn-primary text-xs tracking-wide px-4 py-2.5 shadow-xs">📊 Footprint Logger</Link>
-          <Link to="/marketplace" className="btn-primary text-xs tracking-wide px-4 py-2.5 shadow-xs">🛒 Asset Marketplace</Link>
-          <Link to="/map" className="btn-primary text-xs tracking-wide px-4 py-2.5 shadow-xs">🗺️ Spatial Engine</Link>
-          <Link to="/offset" className="btn-primary text-xs tracking-wide px-4 py-2.5 shadow-xs">🌳 Offset Credit Ledger</Link>
-          <Link to="/achievements" className="btn-primary text-xs tracking-wide px-4 py-2.5 shadow-xs">🏆 Leaderboard Stats</Link>
+          <Link to="/footprint" className="inline-flex justify-center items-center px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs transition-colors">📊 Footprint Logger</Link>
+          <Link to="/marketplace" className="inline-flex justify-center items-center px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs transition-colors">🛒 Asset Marketplace</Link>
+          <Link to="/map" className="inline-flex justify-center items-center px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs transition-colors">🗺️ Spatial Engine</Link>
+          <Link to="/offset" className="inline-flex justify-center items-center px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs transition-colors">🌳 Offset Credit Ledger</Link>
+          <Link to="/achievements" className="inline-flex justify-center items-center px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs transition-colors">🏆 Leaderboard Stats</Link>
         </div>
       </div>
 

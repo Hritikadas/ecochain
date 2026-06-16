@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+// 🎯 ENVIRONMENT AXIOS PATH CONFIGURATION MATRIX
+// Resolves 404 bridges by switching natively between dev localhost and production cloud servers
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 const Certificates = () => {
   const [certificates, setCertificates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,10 +16,10 @@ const Certificates = () => {
 
   const fetchCertificates = async () => {
     try {
-      const response = await axios.get('/api/certificates');
-      setCertificates(response.data);
+      const response = await axios.get(`${API_BASE}/api/certificates`);
+      setCertificates(response.data || []);
     } catch (error) {
-      console.error('Error fetching certificates:', error);
+      console.error('🚨 Error fetching cryptographic verification indexes:', error);
     } finally {
       setLoading(false);
     }
@@ -23,66 +27,66 @@ const Certificates = () => {
 
   const handleVerify = async (cert) => {
     if (!cert.stellar_tx_hash) {
-      alert('No transaction hash available for verification');
+      alert('No transactional tracking hash available for validation loop.');
       return;
     }
 
-    setVerifying({ ...verifying, [cert.id]: true });
+    setVerifying((prev) => ({ ...prev, [cert.id]: true }));
     
     try {
-      const response = await axios.get(`/api/certificates/verify/${cert.stellar_tx_hash}`);
+      const response = await axios.get(`${API_BASE}/api/certificates/verify/${cert.stellar_tx_hash}`);
       
       if (response.data.verified) {
-        alert(`✅ Certificate Verified!\n\nLedger Block: ${response.data.ledger_block}\n\nThis certificate is authentically recorded on the Stellar blockchain.`);
+        alert(`✅ Certificate Verified!\n\nLedger Block Index: ${response.data.ledger_block || response.data.stellar_ledger_index}\n\nThis entry is authentically anchored to the Stellar blockchain consensus matrix.`);
       } else {
-        alert('⚠️ Verification failed. Certificate not found on blockchain.');
+        alert('⚠️ Validation Alert: Record signature mismatch detected on external block layers.');
       }
     } catch (error) {
-      alert('⚠️ Could not verify certificate. The transaction may not exist or the network is unavailable.');
-      console.error('Verification error:', error);
+      alert('⚠️ Verification Timeout: Network node gateway unreachable or hash query does not exist.');
+      console.error('🚨 Verification layer failure:', error);
     } finally {
-      setVerifying({ ...verifying, [cert.id]: false });
+      setVerifying((prev) => ({ ...prev, [cert.id]: false }));
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center" style={{ minHeight: '400px' }}>
+      <div className="flex items-center justify-center min-h-100">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <p className="text-slate-600">Loading certificates...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Compiling Certificate Matrix...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Header Section */}
-      <div className="bg-linear-to-r from-green-50 to-blue-50 rounded-2xl p-8 mb-8 border border-green-100 shadow-sm">
-        <div className="flex items-center justify-between">
+    <div className="max-w-7xl mx-auto px-6 py-10 font-sans antialiased text-slate-800">
+      
+      {/* HEADER HERO MODULE */}
+      <div className="bg-slate-900 border border-slate-800 p-8 rounded-2xl text-white relative overflow-hidden shadow-xl mb-10">
+        <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-500/10 rounded-full blur-3xl"></div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
           <div>
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">📄 Escrow Certificates</h1>
-            <p className="text-slate-600">
-              Cryptographically verified carbon offset and eco-asset certificates recorded on the Stellar blockchain
+            <h1 className="text-3xl font-black tracking-tight mb-2">📄 Escrow Certificates</h1>
+            <p className="text-slate-400 text-xs max-w-2xl">
+              Cryptographically audited carbon compensation and sustainable hardware acquisition proofs anchored to the public Stellar Network to defeat fraudulent corporate greenwashing.
             </p>
           </div>
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
-            <div className="text-center">
-              <p className="text-sm text-slate-500 font-semibold">Total Certificates</p>
-              <p className="text-3xl font-bold text-green-600">{certificates.length}</p>
-            </div>
+          <div className="bg-slate-800 rounded-xl p-4 shadow-inner border border-slate-700 min-w-36 text-center">
+            <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Active Ledger Rows</p>
+            <p className="text-3xl font-black text-emerald-400 mt-1">{certificates.length}</p>
           </div>
         </div>
       </div>
 
-      {/* Certificates Grid */}
+      {/* CERTIFICATES CATALOG MATRIX GRID */}
       {certificates.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-xl border border-slate-200">
-          <div className="text-6xl mb-4">🔒</div>
-          <h3 className="text-xl font-semibold text-slate-700 mb-2">No Certificates Found</h3>
-          <p className="text-slate-500">
-            Certificates will appear here once products are minted on the blockchain.
+        <div className="py-20 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+          <div className="text-4xl mb-3">🔒</div>
+          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide">No Verification Blocks Indexed</h3>
+          <p className="text-slate-400 text-xs mt-1.5 max-w-md mx-auto leading-relaxed">
+            Certificates initialize dynamically the moment an active asset item undergoes a minting sequence on the marketplace module dashboard.
           </p>
         </div>
       ) : (
@@ -90,75 +94,73 @@ const Certificates = () => {
           {certificates.map((cert) => (
             <div
               key={cert.id}
-              className="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden"
+              className="bg-white rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition-all duration-200 overflow-hidden flex flex-col justify-between"
             >
-              {/* Certificate Header */}
-              <div className="bg-linear-to-r from-green-500 to-blue-500 p-4 text-white">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono bg-white/20 px-2 py-1 rounded">
-                    {cert.certificate_id}
-                  </span>
-                  <span className="text-xl">🏆</span>
-                </div>
+              {/* Card Geometric Top Bar */}
+              <div className="bg-slate-900 p-4 border-b border-slate-800 text-white flex items-center justify-between">
+                <span className="text-[10px] font-mono bg-slate-800 border border-slate-700 px-2 py-1 rounded-md text-emerald-400 font-bold tracking-wider">
+                  UUID: {cert.certificate_id || `CERT-${cert.id}`}
+                </span>
+                <span className="text-xs">🌳</span>
               </div>
 
-              {/* Certificate Body */}
-              <div className="p-5">
-                <h3 className="font-bold text-lg text-slate-800 mb-3">
-                  Carbon Certificate
-                </h3>
+              {/* Data Properties Body */}
+              <div className="p-6 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="font-extrabold text-base text-slate-900 tracking-tight mb-4">
+                    Environmental Compliance Certification
+                  </h3>
 
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Issued To:</span>
-                    <span className="font-semibold text-slate-700">{cert.issued_to}</span>
+                  <div className="space-y-2.5 border-b border-slate-100 pb-4 mb-4 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400 font-medium">Beneficiary Origin:</span>
+                      <strong className="text-slate-700">{cert.issued_to || 'Verified Global Entity'}</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400 font-medium">Carbon Mass Offset:</span>
+                      <strong className="text-emerald-700">{cert.carbon_tons || '0.0'} Metric Tons</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400 font-medium">Validation Status:</span>
+                      <span className={`font-bold uppercase text-[10px] tracking-wide ${
+                        String(cert.verification_status).includes('Verified') || String(cert.verification_status).includes('Settled')
+                          ? 'text-emerald-600'
+                          : 'text-amber-600'
+                      }`}>
+                        ● {cert.verification_status || 'Pending Sync'}
+                      </span>
+                    </div>
                   </div>
-                  
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Carbon Tons:</span>
-                    <span className="font-semibold text-green-600">{cert.carbon_tons} tons</span>
-                  </div>
-                  
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Status:</span>
-                    <span className={`font-semibold ${
-                      cert.verification_status.includes('Verified') || cert.verification_status.includes('Settled')
-                        ? 'text-green-600'
-                        : 'text-yellow-600'
-                    }`}>
-                      {cert.verification_status}
-                    </span>
-                  </div>
+
+                  {/* Blockchain Signature Box */}
+                  {cert.stellar_tx_hash && (
+                    <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 text-[11px] mb-6">
+                      <span className="font-bold text-slate-500 uppercase tracking-wider text-[9px]">Stellar Network Ledger Anchor</span>
+                      <code className="font-mono text-slate-700 block break-all select-all bg-white p-1.5 border border-slate-200 rounded">
+                        {cert.stellar_tx_hash}
+                      </code>
+                      
+                      {cert.stellar_ledger_index && (
+                        <div className="text-[10px] text-slate-400 font-medium pt-1">
+                          Consensus Ledger Block Index: <span className="font-bold text-slate-700">{cert.stellar_ledger_index}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                {/* Blockchain Info */}
-                {cert.stellar_tx_hash && (
-                  <div className="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                    <p className="text-xs text-slate-500 mb-1">Blockchain Transaction</p>
-                    <p className="text-xs font-mono text-slate-700 break-all mb-2">
-                      {cert.stellar_tx_hash}
-                    </p>
-                    
-                    {cert.stellar_ledger_index && (
-                      <p className="text-xs text-slate-500">
-                        Ledger: <span className="font-semibold text-slate-700">{cert.stellar_ledger_index}</span>
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="mt-4 flex gap-2">
+                {/* Interaction Handlers */}
+                <div className="flex gap-2 pt-2">
                   <button
                     onClick={() => handleVerify(cert)}
                     disabled={verifying[cert.id] || !cert.stellar_tx_hash}
-                    className={`flex-1 py-2 px-4 rounded-lg font-semibold text-sm transition-all ${
+                    className={`flex-1 py-2.5 px-4 rounded-xl font-bold text-xs transition-all tracking-wide shadow-xs cursor-pointer ${
                       cert.stellar_tx_hash
-                        ? 'bg-green-600 hover:bg-green-700 text-white shadow-sm'
-                        : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                        ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                        : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none'
                     }`}
                   >
-                    {verifying[cert.id] ? '⏳ Verifying...' : '🔍 Verify On-Chain'}
+                    {verifying[cert.id] ? '⏳ Verification in Sync...' : '🔍 Verify On-Chain Signature'}
                   </button>
                   
                   {cert.stellar_tx_hash && (
@@ -166,7 +168,8 @@ const Certificates = () => {
                       href={`https://stellar.expert/explorer/testnet/tx/${cert.stellar_tx_hash}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm transition-all shadow-sm"
+                      className="inline-flex justify-center items-center p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-white rounded-xl transition-all shadow-xs text-xs font-bold"
+                      title="Open Block Explorer"
                     >
                       🌐
                     </a>
@@ -178,31 +181,31 @@ const Certificates = () => {
         </div>
       )}
 
-      {/* Info Section */}
-      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-6">
-        <h3 className="font-bold text-lg text-blue-900 mb-3 flex items-center gap-2">
-          <span>🔐</span>
-          <span>Certificate Verification System</span>
+      {/* LEGAL AUDIT METADATA EXPLANATION BAR */}
+      <div className="mt-10 bg-linear-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-6 md:p-8 shadow-xl text-white">
+        <h3 className="font-bold text-base tracking-tight mb-4 flex items-center gap-2">
+          <span>🔐</span> Immutable Ledger Verification Framework
         </h3>
-        <ul className="space-y-2 text-sm text-slate-700">
-          <li className="flex items-start gap-2">
-            <span className="text-green-600 font-bold">✓</span>
-            <span>All certificates are cryptographically anchored to the Stellar blockchain</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-green-600 font-bold">✓</span>
-            <span>Click "Verify On-Chain" to confirm authenticity directly from the blockchain</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-green-600 font-bold">✓</span>
-            <span>Transaction hashes provide immutable proof of carbon offset contributions</span>
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="text-green-600 font-bold">✓</span>
-            <span>Public ledger ensures transparency and prevents double-counting</span>
-          </li>
-        </ul>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 text-slate-400 text-xs leading-relaxed">
+          <div className="space-y-1">
+            <span className="font-semibold text-slate-200 block text-sm">01 / Hash Anchorages</span>
+            <p>Every transaction mint generates an alphanumeric transaction fingerprint mapped permanently across distributed testnet node sets.</p>
+          </div>
+          <div className="space-y-1">
+            <span className="font-semibold text-slate-200 block text-sm">02 / Zero Double-Counting</span>
+            <p>Cryptographic balances ensure that single offset carbon asset lines cannot undergo duplicate sales or split equity distributions.</p>
+          </div>
+          <div className="space-y-1">
+            <span className="font-semibold text-slate-200 block text-sm">03 / Direct Node Audits</span>
+            <p>Clicking the verification pipeline commands fires low-latency lookups querying independent cryptographic blocks for truth states instantly.</p>
+          </div>
+          <div className="space-y-1">
+            <span className="font-semibold text-slate-200 block text-sm">04 / Absolute Open Source</span>
+            <p>Public block explorers act as external consensus judges, making systemic metrics available to inspectors and venture teams alike.</p>
+          </div>
+        </div>
       </div>
+      
     </div>
   );
 };

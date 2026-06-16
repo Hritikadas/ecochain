@@ -1,26 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+// 🎯 ENVIRONMENT AXIOS PATH CONFIGURATION MATRIX
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 const Marketplace = () => {
+  // 🔐 DYNAMIC USER SESSION CONTEXT (No longer hardcoded!)
+  const activeSessionUser = JSON.parse(localStorage.getItem('user')) || { id: 1, name: 'Hritika Das' };
+
   const [products, setProducts] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [minting, setMinting] = useState({});
+  
+  // React State Hooks are properly configured at the top level
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     category: 'Renewable Energy',
     certificate_url: '',
-    seller_id: 1 
+    price: '', // Kept empty to ensure the user inputs an explicit value
+    seller_id: activeSessionUser.id 
   });
 
   // 1. Fetch all products on page mount
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('/api/products');
-      setProducts(response.data);
+      const response = await axios.get(`${API_BASE}/api/products`);
+      setProducts(response.data || []);
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error('🚨 Error reading asset catalog stream:', error);
     }
   };
 
@@ -38,109 +47,101 @@ const Marketplace = () => {
     setLoading(true);
     
     try {
-      await axios.post('/api/products', formData);
+      // Send data dynamically including the real runtime active session attributes
+      await axios.post(`${API_BASE}/api/products`, {
+        ...formData,
+        seller_name: activeSessionUser.name // Attaching name from session payload dynamically
+      });
+      
       setShowModal(false);
       setFormData({
         name: '',
         description: '',
         category: 'Renewable Energy',
         certificate_url: '',
-        seller_id: 1
+        price: '',
+        seller_id: activeSessionUser.id
       });
-      fetchProducts();
-      alert('✅ Product added successfully!');
+      await fetchProducts();
+      alert('✅ Asset successfully written to live production database!');
     } catch (error) {
-      console.error('Error creating product:', error);
-      alert('❌ Failed to add product.');
+      console.error('🚨 Failed to execute asset creation endpoint:', error);
+      alert(`❌ Failed to add product: ${error.response?.data?.error || error.message}`);
     } finally {
       setLoading(false);
     }
   };
 
-  // 2. Handle minting on Stellar
+  // 2. Handle minting on Stellar Ledger
   const handleMint = async (product) => {
-    if (!window.confirm(`Mint certificate for "${product.name || product.title}" on the Stellar blockchain ledger network?`)) {
+    if (!window.confirm(`Mint cryptographic sustainability tracking certificate for "${product.name || product.title}" on the Stellar Testnet ledger?`)) {
       return;
     }
     
-    setMinting({ ...minting, [product.id]: true });
+    setMinting((prev) => ({ ...prev, [product.id]: true }));
     
     try {
-      const response = await axios.post('/api/certificates/mint', {
+      const response = await axios.post(`${API_BASE}/api/certificates/mint`, {
         product_id: product.id
       });
       
-      alert(`✅ Certificate minted successfully!\n\nTX Hash: ${response.data.transaction_hash}`);
-      fetchProducts(); // Refresh list immediately to reveal verification features
+      alert(`✅ Cryptographic Mint Successful!\n\nStellar TX Hash:\n${response.data.transaction_hash || response.data.stellar_tx_hash}`);
+      await fetchProducts();
     } catch (error) {
-      console.error('Minting error:', error);
-      alert('❌ Failed to mint certificate.');
+      console.error('🚨 Minting pipeline failure:', error);
+      alert('❌ Cryptographic mint rejected by blockchain gateway protocol.');
     } finally {
-      setMinting({ ...minting, [product.id]: false });
+      setMinting((prev) => ({ ...prev, [product.id]: false }));
     }
   };
 
   return (
-    <div style={{ padding: '30px', fontFamily: 'sans-serif', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+    <div className="max-w-7xl mx-auto px-6 py-10 font-sans antialiased text-slate-800">
+      
+      {/* MODULE HEADER BAR */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10 border-b border-slate-100 pb-6">
         <div>
-          <h1 style={{ margin: 0, color: '#2e7d32' }}>Eco Marketplace</h1>
-          <p style={{ margin: '5px 0 0 0', color: '#666' }}>Verify and purchase authenticated sustainable goods on-chain.</p>
+          <h1 className="text-3xl font-black tracking-tight text-slate-900 flex items-center gap-2">
+            🌱 Eco Marketplace
+          </h1>
+          <p className="text-slate-500 text-xs mt-1">
+            Verify provenance and trade authenticated green assets via immutable decentralized metadata hooks.
+          </p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#2e7d32',
-            color: 'white',
-            border: 'none',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            fontWeight: 'bold'
-          }}
+          className="inline-flex justify-center items-center px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
         >
           + Add Eco Product
         </button>
       </div>
 
-      {/* Grid Dashboard Panel */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '25px' }}>
+      {/* DASHBOARD CARD CONTAINER MATRIX */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.length === 0 ? (
-          <p style={{ color: '#999', gridColumn: '1/-1', textAlign: 'center', marginTop: '50px' }}>
-            No eco products posted yet. Be the first to list a sustainable asset!
-          </p>
+          <div className="col-span-full py-16 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50/50">
+            <span className="text-3xl block mb-2">📦</span>
+            <p className="text-slate-400 font-semibold text-sm">No eco assets currently registered inside cloud matrix logs.</p>
+            <p className="text-slate-400 text-xs mt-1">Initialize the marketplace loop by clicking the registration portal button above.</p>
+          </div>
         ) : (
           products.map((product) => (
             <div
               key={product.id}
-              style={{
-                border: '1px solid #e0e0e0',
-                borderRadius: '8px',
-                padding: '20px',
-                boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
-                backgroundColor: '#fff',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between'
-              }}
+              className="bg-white p-6 border border-slate-200 rounded-2xl shadow-xs hover:shadow-md transition-all flex flex-col justify-between"
             >
               <div>
-                <span
-                  style={{
-                    fontSize: '11px',
-                    backgroundColor: '#e8f5e9',
-                    color: '#2e7d32',
-                    padding: '4px 8px',
-                    borderRadius: '12px',
-                    fontWeight: 'bold',
-                    textTransform: 'uppercase'
-                  }}
-                >
+                <span className="inline-block text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md">
                   {product.category}
                 </span>
-                <h3 style={{ margin: '15px 0 10px 0', color: '#333' }}>{product.name || product.title}</h3>
-                <p style={{ color: '#666', fontSize: '14px', lineHeight: '1.4', minHeight: '60px' }}>
-                  {product.description || 'No description provided for this asset.'}
+                <h3 className="text-lg font-bold text-slate-900 tracking-tight mt-4 mb-2">
+                  {product.name || product.title}
+                </h3>
+                {product.price && (
+                  <p className="text-slate-900 font-extrabold text-sm mb-2">${product.price}</p>
+                )}
+                <p className="text-slate-500 text-xs leading-relaxed mb-4 min-h-12">
+                  {product.description || 'No alternative meta parameters supplied for this specific catalog entry.'}
                 </p>
                 
                 {product.certificate_url && (
@@ -148,101 +149,141 @@ const Marketplace = () => {
                     href={product.certificate_url}
                     target="_blank"
                     rel="noreferrer"
-                    style={{ fontSize: '13px', color: '#1565c0', textDecoration: 'none', display: 'block', marginBottom: '10px' }}
+                    className="inline-flex items-center text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline mb-4"
                   >
-                    📄 View Original Document Link
+                    📄 Reference Verification Document →
                   </a>
                 )}
               </div>
 
-              {/* Dynamic Mint Action Button Control */}
-              <button
-                onClick={() => handleMint(product)}
-                disabled={minting[product.id] || !!product.stellar_tx_hash}
-                style={{
-                  marginTop: '15px',
-                  padding: '10px 16px',
-                  background: product.stellar_tx_hash ? '#ccc' : minting[product.id] ? '#ff9800' : '#ff9800',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: (product.stellar_tx_hash || minting[product.id]) ? 'not-allowed' : 'pointer',
-                  fontSize: '13px',
-                  fontWeight: 'bold',
-                  width: '100%',
-                  opacity: minting[product.id] ? 0.7 : 1
-                }}
-              >
-                {minting[product.id] ? '⏳ Minting...' : product.stellar_tx_hash ? '✅ On-Chain Certificate Minted' : '🔨 Mint Eco Certificate'}
-              </button>
+              {/* ACTION EXECUTION MODULES */}
+              <div className="space-y-4 pt-4 border-t border-slate-100">
+                <button
+                  onClick={() => handleMint(product)}
+                  disabled={minting[product.id] || !!product.stellar_tx_hash}
+                  className={`w-full py-2.5 font-bold text-xs rounded-xl text-white transition-all cursor-pointer ${
+                    product.stellar_tx_hash 
+                      ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none' 
+                      : minting[product.id] 
+                        ? 'bg-amber-500 animate-pulse cursor-wait' 
+                        : 'bg-slate-900 hover:bg-slate-800 shadow-xs'
+                  }`}
+                >
+                  {minting[product.id] ? '⏳ Synchronizing Blocks...' : product.stellar_tx_hash ? '✅ Provenance Verified on Stellar' : '🔨 Mint Asset Audit Proof'}
+                </button>
 
-              {/* 🔍 PUBLIC LEDGER VERIFICATION ROUTE INTERACTOR */}
-              {product.stellar_tx_hash && (
-                <div style={{ marginTop: '15px', paddingTop: '12px', borderTop: '1px dashed #eee' }}>
-                  <div style={{ wordBreak: 'break-all', fontSize: '11px', color: '#555', marginBottom: '8px' }}>
-                    <strong>Stellar TX Hash:</strong> <span style={{ fontFamily: 'monospace', color: '#333' }}>{product.stellar_tx_hash}</span>
+                {/* REAL-TIME DECENTRALIZED EXPLORER DRAWERS */}
+                {product.stellar_tx_hash && (
+                  <div className="bg-slate-50 border border-slate-200 p-3.5 rounded-xl space-y-2.5">
+                    <div className="text-[10px] text-slate-500 font-medium truncate">
+                      <span className="font-bold text-slate-700 uppercase block tracking-wider text-[9px] mb-0.5">Stellar Network Ledger Anchor</span>
+                      <code className="font-mono bg-white px-1.5 py-0.5 border border-slate-200 rounded block mt-1 break-all select-all">{product.stellar_tx_hash}</code>
+                    </div>
+                    
+                    <a
+                      href={`https://stellar.expert/explorer/testnet/tx/${product.stellar_tx_hash}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-full inline-flex justify-center items-center text-center py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg font-bold text-[11px] transition-colors hover:bg-blue-100"
+                    >
+                      🔍 Open Stellar Explorer Window
+                    </a>
                   </div>
-                  
-                  <a
-                    href={`https://stellar.expert/explorer/testnet/tx/${product.stellar_tx_hash}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{
-                      display: 'block',
-                      textAlign: 'center',
-                      padding: '8px',
-                      backgroundColor: '#e3f2fd',
-                      color: '#0d47a1',
-                      borderRadius: '4px',
-                      textDecoration: 'none',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      border: '1px solid #bbdefb',
-                      transition: 'background 0.2s'
-                    }}
-                    onMouseOver={(e) => e.target.style.backgroundColor = '#bbdefb'}
-                    onMouseOut={(e) => e.target.style.backgroundColor = '#e3f2fd'}
-                  >
-                    🔍 Verify Live on Blockchain Explorer 🌐
-                  </a>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ))
         )}
       </div>
 
-      {/* Product Listing Modal Code */}
+      {/* ASSET CREATION CONTAINER INTERFACE SHEET */}
       {showModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: 'white', padding: '30px', borderRadius: '8px', width: '450px' }}>
-            <h2 style={{ margin: '0 0 20px 0', color: '#2e7d32' }}>List New Eco Asset</h2>
-            <form onSubmit={handleSubmit}>
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '14px' }}>Product Title Name</label>
-                <input type="text" name="name" value={formData.name} onChange={handleInputChange} required placeholder="Solar Panel, Carbon Units etc..." style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' }} />
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs flex justify-center items-center z-50">
+          <div className="bg-white border border-slate-200 p-6 md:p-8 rounded-2xl w-full max-w-md shadow-2xl relative mx-4">
+            <h2 className="text-xl font-bold tracking-tight text-slate-900 mb-1">List New Eco Asset</h2>
+            <p className="text-slate-400 text-xs mb-6">Append a structural asset unit into the decentralized indexing layers.</p>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Asset Inventory Identifier</label>
+                <input 
+                  type="text" 
+                  name="name" 
+                  value={formData.name} 
+                  onChange={handleInputChange} 
+                  required 
+                  placeholder="e.g., Solar Module 450W, Tier-1 Carbon Credit" 
+                  className="w-full p-2.5 bg-slate-50 rounded-xl border border-slate-300 text-sm focus:outline-hidden focus:border-emerald-600 focus:bg-white transition-all" 
+                />
               </div>
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '14px' }}>Category Scope</label>
-                <select name="category" value={formData.category} onChange={handleInputChange} style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' }}>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Classification Context</label>
+                <select 
+                  name="category" 
+                  value={formData.category} 
+                  onChange={handleInputChange} 
+                  className="w-full p-2.5 bg-slate-50 rounded-xl border border-slate-300 text-sm focus:outline-hidden focus:border-emerald-600 focus:bg-white transition-all"
+                >
                   <option value="Renewable Energy">Renewable Energy</option>
                   <option value="Carbon Offset Asset">Carbon Offset Asset</option>
                   <option value="Recycled Material">Recycled Material</option>
                   <option value="Energy Efficient Device">Energy Efficient Device</option>
                 </select>
               </div>
-              <div style={{ marginBottom: '15px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '14px' }}>Description</label>
-                <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Product attributes..." style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc', height: '60px', resize: 'none' }} />
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Asset Price (USD)</label>
+                <input 
+                  type="number" 
+                  name="price" 
+                  value={formData.price} 
+                  onChange={handleInputChange} 
+                  required 
+                  min="0"
+                  step="0.01"
+                  placeholder="e.g., 49.99" 
+                  className="w-full p-2.5 bg-slate-50 rounded-xl border border-slate-300 text-sm focus:outline-hidden focus:border-emerald-600 focus:bg-white transition-all" 
+                />
               </div>
-              <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', fontSize: '14px' }}>Certificate URL</label>
-                <input type="url" name="certificate_url" value={formData.certificate_url} onChange={handleInputChange} placeholder="https://example.org/cert/123" style={{ width: '100%', padding: '8px', boxSizing: 'border-box', borderRadius: '4px', border: '1px solid #ccc' }} />
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Technical Description</label>
+                <textarea 
+                  name="description" 
+                  value={formData.description} 
+                  onChange={handleInputChange} 
+                  placeholder="Enter structural metrics, verification provenance, and serial identifiers..." 
+                  className="w-full p-2.5 bg-slate-50 rounded-xl border border-slate-300 text-sm h-20 resize-none focus:outline-hidden focus:border-emerald-600 focus:bg-white transition-all" 
+                />
               </div>
-              <div style={{ display: 'flex', justifyContent: 'end', gap: '10px' }}>
-                <button type="button" onClick={() => setShowModal(false)} style={{ padding: '8px 16px', background: '#e0e0e0', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
-                <button type="submit" disabled={loading} style={{ padding: '8px 16px', background: loading ? '#ccc' : '#2e7d32', color: 'white', border: 'none', borderRadius: '4px', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}>
-                  {loading ? 'Publishing...' : 'Publish Asset'}
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Audit Documentation URL</label>
+                <input 
+                  type="url" 
+                  name="certificate_url" 
+                  value={formData.certificate_url} 
+                  onChange={handleInputChange} 
+                  placeholder="https://identity-vault.org/proof/cert.pdf" 
+                  className="w-full p-2.5 bg-slate-50 rounded-xl border border-slate-300 text-sm focus:outline-hidden focus:border-emerald-600 focus:bg-white transition-all" 
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-6">
+                <button 
+                  type="button" 
+                  onClick={() => setShowModal(false)} 
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold text-xs rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={loading} 
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-xs transition-colors disabled:bg-slate-300 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {loading ? 'Publishing Matrix...' : 'Publish Asset'}
                 </button>
               </div>
             </form>
