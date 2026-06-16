@@ -2,7 +2,9 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 
-// 1. GET ALL PRODUCTS
+// =========================================================================
+// 1. GET ALL PRODUCTS (READ LEDGER)
+// =========================================================================
 router.get('/', (req, res) => {
   db.all('SELECT * FROM products', [], (err, rows) => {
     if (err) {
@@ -13,7 +15,9 @@ router.get('/', (req, res) => {
   });
 });
 
-// 2. FUNCTIONAL POST ENDPOINT WITH AUTO-INITIALIZATION & FLEXIBLE SCHEMA MAPPING
+// =========================================================================
+// 2. POST ENDPOINT WITH AUTO-INITIALIZATION & FLEXIBLE SCHEMA MAPPING
+// =========================================================================
 router.post('/', (req, res) => {
   // Destructure whatever names your frontend form might be sending
   const { 
@@ -34,13 +38,13 @@ router.post('/', (req, res) => {
   const finalCategory = category || 'Renewable Energy';
   const finalCertUrl = certificateUrl || certificate_url || '';
   
-  // Create a clean fallback asset code
+  // Create a clean fallback asset code matching Stellar standards
   const rawAssetCode = stellar_asset_code || assetCode || 'ECO';
   const finalAssetCode = rawAssetCode.replace(/[^a-zA-Z0-9]/g, '').substring(0, 6).toUpperCase() || 'ECOSEC';
 
   console.log(`📥 Processing product write request: "${finalTitle}"`);
 
-  // 🛡️ Safety Guardrail: Dynamically initialize table parameters if running on an empty cloud environment
+  // 🛡️ Safety Guardrail: Dynamically initialize table parameters if running on empty cloud host (Render)
   db.run(`
     CREATE TABLE IF NOT EXISTS products (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,7 +63,7 @@ router.post('/', (req, res) => {
       return res.status(500).json({ error: 'Database schema synchronization failed.' });
     }
 
-    // Generate a default mock transaction hash to populate the field if not supplied
+    // Generate a secure default mock transaction hash to populate the field
     const finalTxHash = `mock_tx_${Date.now()}`;
 
     // Execute the insertion row block using verified schema configurations

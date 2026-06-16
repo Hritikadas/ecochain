@@ -14,17 +14,18 @@ const offsetRoutes = require('./routes/offset');
 const achievementRoutes = require('./routes/achievements');
 
 const app = express();
-const PORT = 3001;
 
-// 🎯 CRITICAL FIX: Global Middlewares MUST be initialized 
-// BEFORE any app.use router mounts execute!
-// Strict CORS initialization profile wrapper
+// 🎯 DYNAMIC PRODUCTION PORT BINDING (Essential for Render deployment)
+const PORT = process.env.PORT || 3001;
+
+// 🎯 PRODUCTION-READY GLOBAL MIDDLEWARES
+// Unified, permissive CORS setup allowing cross-origin requests from your live Vercel link
 app.use(cors({
-  origin: 'http://localhost:5173',
+  origin: '*', 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(cors());
+
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
 
@@ -43,7 +44,6 @@ app.use('/api/offset', offsetRoutes);
 app.use('/api/achievements', achievementRoutes);
 
 // Global Unhandled Catch-All Route Error Interceptor 
-// This forces any hidden middleware exceptions to print out directly to your console logs!
 app.use((err, req, res, next) => {
   console.log("\n💥 GLOBAL EXPRESS CRASH INTERCEPTOR:");
   console.error(err.stack || err);
@@ -53,6 +53,6 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`=========================================`);
-  console.log(`🚀 ECOCHAIN BACKEND RUNNING: http://localhost:${PORT}`);
+  console.log(`🚀 ECOCHAIN BACKEND RUNNING ON PORT: ${PORT}`);
   console.log(`=========================================`);
 });
