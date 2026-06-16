@@ -8,6 +8,7 @@ import Achievements from './pages/Achievements.jsx';
 import Certificates from './pages/Certificates.jsx';
 import Landing from './pages/Landing.jsx'
 import GetStarted from './pages/GetStarted';
+import AuthGateway from './pages/AuthGateway';
 
 // Custom wrapper to dynamically apply active tab styling using Tailwind
 const NavigationLinks = () => {
@@ -72,6 +73,8 @@ const App = () => {
             <Route path="/certificates" element={<Certificates />} />
             <Route path="/" element={<Landing />} />
             <Route path="/get-started" element={<GetStarted />} />
+            <Route path="/signup" element={<AuthGateway />} />
+            <Route path="/login" element={<AuthGateway />} />
             {/* ... bind /signup, /login, and standard user ledger profile trees next */}
           </Routes>
         </div>
