@@ -63,19 +63,23 @@ const App = () => {
 
         {/* CENTRAL ROUTING SITE ROUTER ENGINE FRAMEWORK CONTROLLER */}
         <div className="flex-1 container mx-auto py-6 px-4">
+          {/* 🛠️ ROUTING CONFIGURATION ENTRY ALIGNMENT */}
           <Routes>
-            <Route path="/" element={<Marketplace />} />
-            <Route path="/marketplace" element={<Marketplace />} />
-            <Route path="/map" element={<EcoMap />} />
-            <Route path="/offset" element={<CarbonOffset />} />
-            <Route path="/footprint" element={<CarbonFootprint />} />
-            <Route path="/achievements" element={<Achievements />} />
-            <Route path="/certificates" element={<Certificates />} />
-            <Route path="/" element={<Landing />} />
-            <Route path="/get-started" element={<GetStarted />} />
-            <Route path="/signup" element={<AuthGateway />} />
-            <Route path="/login" element={<AuthGateway />} />
-            {/* ... bind /signup, /login, and standard user ledger profile trees next */}
+  {/* 🚀 ENTRY POINT: Onboarding flow loads first when visiting the root domain */}
+          <Route path="/" element={<GetStarted />} /> 
+
+  {/* 🏠 CORE PAGES */}
+          <Route path="/home" element={<Landing />} /> 
+          <Route path="/signup" element={<AuthGateway />} />
+          <Route path="/login" element={<AuthGateway />} />
+
+  {/* 🛒 PLATFORM DASHBOARD MODULES */}
+          <Route path="/marketplace" element={<Marketplace />} />
+          <Route path="/map" element={<EcoMap />} />
+          <Route path="/offset" element={<CarbonOffset />} />
+          <Route path="/footprint" element={<CarbonFootprint />} />
+          <Route path="/achievements" element={<Achievements />} />
+          <Route path="/certificates" element={<Certificates />} />
           </Routes>
         </div>
 
