@@ -1,96 +1,60 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import Marketplace from './pages/Marketplace.jsx';
-import EcoMap from './pages/EcoMap.jsx';
-import CarbonOffset from './pages/CarbonOffset.jsx';
-import CarbonFootprint from './pages/CarbonFootprint.jsx';
-import Achievements from './pages/Achievements.jsx';
-import Certificates from './pages/Certificates.jsx';
-import Landing from './pages/Landing.jsx'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+// 🌎 CORE COMPONENT LAYOUTS
+// Adjust these import paths if your file system naming conventions differ slightly
+import Navbar from './components/Navbar'; 
+
+// 📄 SYSTEM GATEWAY & ONBOARDING PORTALS
 import GetStarted from './pages/GetStarted';
 import AuthGateway from './pages/AuthGateway';
 
-// Custom wrapper to dynamically apply active tab styling using Tailwind
-const NavigationLinks = () => {
-  const location = useLocation();
+// 📊 OPERATIONAL PLATFORM FEATURE DASHBOARDS
+import Landing from './pages/Landing';
+import Marketplace from './pages/Marketplace';
+import EcoMap from './pages/EcoMap';
+import CarbonOffset from './pages/CarbonOffset';
+import CarbonFootprint from './pages/CarbonFootprint';
+import Achievements from './pages/Achievements';
+import Certificates from './pages/Certificates';
 
-  const links = [
-    { path: '/marketplace', label: '🏪 Marketplace' },
-    { path: '/map', label: '🗺️ Eco Map Tracker' },
-    { path: '/offset', label: '🌳 Carbon Marketplace' },
-    { path: '/footprint', label: '📊 Carbon Analyzer' },
-    { path: '/achievements', label: '🏆 Badges' },
-    { path: '/certificates', label: '📄 Certificates' },
-  ];
-
-  return (
-    <div className="flex gap-6">
-      {links.map((link) => {
-        const isActive = location.pathname === link.path || (link.path === '/marketplace' && location.pathname === '/');
-        return (
-          <Link
-            key={link.path}
-            to={link.path}
-            className={`text-sm font-semibold transition-all duration-200 pb-1 ${
-              isActive
-                ? 'text-green-600 border-b-2 border-green-600 font-bold'
-                : 'text-slate-600 hover:text-green-600'
-            }`}
-          >
-            {link.label}
-          </Link>
-        );
-      })}
-    </div>
-  );
-};
-
-const App = () => {
+function App() {
   return (
     <Router>
-      <div className="min-h-screen flex flex-col bg-slate-50 font-sans">
+      <Routes>
         
-        {/* GLOBAL PLATFORM TOP NAVIGATION BAR */}
-        <nav className="bg-white px-8 py-4 shadow-sm flex justify-between items-center border-b border-slate-200">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl">🌱</span>
-            <h2 className="text-xl font-bold text-green-700 tracking-tight">Ecochain</h2>
-          </div>
-          
-          {/* Dynamic Navigation Links */}
-          <NavigationLinks />
-        </nav>
+        {/* 🔐 GATEWAY SEGMENT: Renders full-screen without Navbar contamination */}
+        <Route path="/" element={<GetStarted />} />
+        <Route path="/signup" element={<AuthGateway />} />
+        <Route path="/login" element={<AuthGateway />} />
 
-        {/* CENTRAL ROUTING SITE ROUTER ENGINE FRAMEWORK CONTROLLER */}
-        <div className="flex-1 container mx-auto py-6 px-4">
-          {/* 🛠️ ROUTING CONFIGURATION ENTRY ALIGNMENT */}
-          <Routes>
-  {/* 🚀 ENTRY POINT: Onboarding flow loads first when visiting the root domain */}
-          <Route path="/" element={<GetStarted />} /> 
+        {/* 📊 PLATFORM ECOSYSTEM: Encapsulated cleanly to safely display the standard Navbar wrapper */}
+        <Route
+          path="/*"
+          element={
+            <div className="min-h-screen bg-slate-50/50">
+              <Navbar />
+              <main className="animate-fadeIn">
+                <Routes>
+                  <Route path="/home" element={<Landing />} />
+                  <Route path="/marketplace" element={<Marketplace />} />
+                  <Route path="/map" element={<EcoMap />} />
+                  <Route path="/offset" element={<CarbonOffset />} />
+                  <Route path="/footprint" element={<CarbonFootprint />} />
+                  <Route path="/achievements" element={<Achievements />} />
+                  <Route path="/certificates" element={<Certificates />} />
+                  
+                  {/* 🔍 FALLBACK REDIRECT CATCH-ALL */}
+                  <Route path="*" element={<Landing />} />
+                </Routes>
+              </main>
+            </div>
+          }
+        />
 
-  {/* 🏠 CORE PAGES */}
-          <Route path="/home" element={<Landing />} /> 
-          <Route path="/signup" element={<AuthGateway />} />
-          <Route path="/login" element={<AuthGateway />} />
-
-  {/* 🛒 PLATFORM DASHBOARD MODULES */}
-          <Route path="/marketplace" element={<Marketplace />} />
-          <Route path="/map" element={<EcoMap />} />
-          <Route path="/offset" element={<CarbonOffset />} />
-          <Route path="/footprint" element={<CarbonFootprint />} />
-          <Route path="/achievements" element={<Achievements />} />
-          <Route path="/certificates" element={<Certificates />} />
-          </Routes>
-        </div>
-
-        {/* IMMUTABLE AUDIT FOOTER */}
-        <footer className="text-center py-5 bg-white text-slate-500 text-xs border-t border-slate-200 shadow-inner">
-          © 2026 Ecochain Platform • Verified Secure via Stellar Horizon Test Network Protocol
-        </footer>
-
-      </div>
+      </Routes>
     </Router>
   );
-};
+}
 
 export default App;
