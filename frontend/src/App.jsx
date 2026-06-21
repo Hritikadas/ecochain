@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 
 // 📊 OPERATIONAL PLATFORM FEATURE DASHBOARDS
+import AICoachWidget from './components/AICoachWidget'; // 👈 Imported perfectly
 import GetStarted from './pages/GetStarted';
 import AuthGateway from './pages/AuthGateway';
 import Landing from './pages/Landing';
@@ -59,7 +60,7 @@ function App() {
     <Router>
       <Routes>
         
-        {/* 🔐 AUTH & ONBOARDING GATEWAYS: Completely full-screen with no navigation overlap */}
+        {/* 🔐 AUTH & ONBOARDING GATEWAYS: Completely full-screen with no navigation or widget overlap */}
         <Route path="/" element={<GetStarted />} />
         <Route path="/signup" element={<AuthGateway />} />
         <Route path="/login" element={<AuthGateway />} />
@@ -68,7 +69,7 @@ function App() {
         <Route
           path="/*"
           element={
-            <div className="min-h-screen bg-slate-50/50 flex flex-col">
+            <div className="min-h-screen bg-slate-50/50 flex flex-col relative">
               <NavigationHeader />
               <main className="flex-1 max-w-7xl w-full mx-auto p-6 animate-fadeIn">
                 <Routes>
@@ -84,6 +85,10 @@ function App() {
                   <Route path="*" element={<Landing />} />
                 </Routes>
               </main>
+
+              {/* 🔮 FLOATING LOCAL RAG AI ASSISTANT WIDGET MODULE */}
+              {/* This places your Lavender & Indigo local AI coach across your dashboard ecosystem */}
+              <AICoachWidget />
             </div>
           }
         />
