@@ -24,7 +24,7 @@ const AICoachWidget = () => {
     setLoading(true);
 
     try {
-      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       const historyString = messages.map(m => `${m.sender}: ${m.text}`).join('\n');
       
       const response = await axios.post(`${backendUrl}/api/ai/chat`, {
