@@ -24,9 +24,9 @@ def run_ecochain_etl():
     # ⚙️ 2. TRANSFORM: Run fast aggregations using Pandas/Analytical syntax
     print("⚙️ Processing regional carbon footprints metrics...")
     
-    # Calculate total and average emissions grouped by geographic region
+   # Calculate total and average emissions grouped by geographic region
     transformed_df = df_mock.groupby("region").agg(
-        total_emissions_metric_tons=("emissions_kg", lambda x: sorted(x.sum() / 1000.0)[0]),
+        total_emissions_metric_tons=("emissions_kg", lambda x: x.sum() / 1000.0),
         total_logs_processed=("emissions_kg", "count")
     ).reset_index()
 
