@@ -25,5 +25,7 @@ jobs:
         pip install pandas requests beautifulsoup4 langchain-huggingface chromadb
 
     - name: Run ETL Data Pipeline Engine
+      env:
+        HF_TOKEN: ${{ secrets.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 }}
       run: |
         python backend/scripts/data_pipeline.py
