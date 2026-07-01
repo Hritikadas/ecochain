@@ -1,0 +1,59 @@
+Learn about some of the key concepts related to climate change:
+
+The earth's climate is changing. Multiple lines of evidence show changes in our weather, oceans, and ecosystems, such as:
+
+These changes are due to a buildup of greenhouse gases in our atmosphere and the warming of the planet due to the greenhouse effect.
+
+The earth's temperature depends on the balance between energy entering and leaving the planet’s system. When sunlight reaches the earth’s surface, it can either be reflected back into space or absorbed by the earth. Incoming energy that is absorbed by the earth warms the planet. Once absorbed, the planet releases some of the energy back into the atmosphere as heat (also called infrared radiation). Solar energy that is reflected back to space does not warm the earth.
+
+Certain gases in the atmosphere absorb energy, slowing or preventing the loss of heat to space. Those gases are known as “greenhouse gases.” They act like a blanket, making the earth warmer than it would otherwise be. This process, commonly known as the “greenhouse effect,” is natural and necessary to support life.
+
+Greenhouse gases come from a variety of human activities, including burning fossil fuels for heat and energy, clearing forests, fertilizing crops, storing waste in landfills, raising livestock, and producing some kinds of industrial products.
+
+Carbon dioxide enters the atmosphere through burning fossil fuels, solid waste, trees, and other biological materials, and as a result of certain chemical reactions, such as cement manufacturing. Carbon dioxide is absorbed and emitted naturally as part of the carbon cycle, through plant and animal respiration, volcanic eruptions, and ocean-atmosphere exchange.
+
+The carbon cycle is the process by which carbon continually moves from the atmosphere to the earth and then back to the atmosphere. On the earth, carbon is stored in rocks, sediments, the ocean, and in living organisms. Carbon is released back into the atmosphere when plants and animals die, as well as when fires burn, volcanoes erupt, and fossil fuels (such as coal, natural gas, and oil) are combusted. The carbon cycle ensures there is a balanced concentration of carbon in the different reservoirs on the planet. But a change in the amount of carbon in one reservoir affects all the others.
+
+Source: Smithsonian National Museum of Natural History, May 30, 2019
+
+Both natural and human activities produce methane. For example, natural wetlands, agricultural activities, and fossil fuel extraction and transport all emit methane.
+
+Nitrous oxide is produced mainly through agricultural activities and natural biological processes. Fossil fuel burning and industrial processes also create nitrous oxide.
+
+Chlorofluorocarbons, hydrochlorofluorocarbons, hydrofluorocarbons, perfluorocarbons, and sulfur hexafluoride, together called F-gases, are often used in coolants, foaming agents, fire extinguishers, solvents, pesticides, and aerosol propellants.
+
+Different greenhouse gases can remain in the atmosphere for different amounts of time, ranging from a few years to thousands of years. In addition, some gases are more effective than others at making the planet warmer. Learn more about Global Warming Potential (GWP), a measure of climate impacts based on how long each greenhouse gas remains in the atmosphere and how strongly it absorbs energy.
+
+Ground-level ozone is created by a chemical reaction between emissions of nitrogen oxides and volatile organic compounds from automobiles, power plants, and other industrial and commercial sources in the presence of sunlight. In addition to trapping heat, ground-level ozone is a pollutant that can cause respiratory health problems and damage crops and ecosystems.
+
+Water vapor is another greenhouse gas and plays a key role in climate feedbacks because of its heat-trapping ability. Warmer air holds more moisture than cooler air. Therefore, as greenhouse gas concentrations increase and global temperatures rise, the total amount of water vapor in the atmosphere also increases, further amplifying the warming effect.7
+
+For more information on greenhouse gases, see Greenhouse Gas Emissions.
+
+Aerosols in the atmosphere can affect climate. Aerosols are microscopic (solid or liquid) particles that are so small that instead of quickly falling to the surface like larger particles, they remain suspended in the air for days to weeks. Human activities, such as burning fossil fuels and biomass, contribute to emissions of these substances, although some aerosols also come from natural sources such as volcanoes and marine plankton.
+
+Unlike greenhouse gases, the climate effects of aerosols vary depending on what they are made of and where they are emitted. Depending on their color and other factors, aerosols can either absorb or reflect sunlight. Aerosols that reflect sunlight, such as particles from volcanic eruptions or sulfur emissions from burning coal, have a cooling effect. Those that absorb sunlight, such as black carbon (a part of soot), have a warming effect.
+
+Not only can black carbon directly absorb incoming and reflected sunlight, but it can also absorb infrared radiation.8 Black carbon can also be deposited on snow and ice, darkening the surface and thereby increasing the snow's absorption of sunlight and accelerating melt.8 For more information, see the 2015 Report to Congress on Black Carbon. While reductions in all aerosols can lead to more warming, targeted reductions in black carbon emissions can reduce global warming. Warming and cooling aerosols can also interact with clouds, changing their ability to form and dissipate, as well as their reflectivity and precipitation rates. Clouds can contribute both to cooling, by reflecting sunlight, and warming, by trapping outgoing heat.
+
+Climate feedbacks are natural processes that respond to global warming by offsetting or further increasing change in the climate system. Feedbacks that offset the change in climate are called negative feedbacks. Feedbacks that amplify changes are called positive feedbacks.
+
+Water vapor appears to cause the most important positive feedback. As the earth warms, the rate of evaporation and the amount of water vapor in the air both increase. Because water vapor is a greenhouse gas, this leads to further warming.
+
+The melting of Arctic sea ice is another example of a positive climate feedback. As temperatures rise, sea ice retreats. The loss of ice exposes the underlying sea surface, which is darker and absorbs more sunlight than ice, increasing the total amount of warming. Less snow cover during warm winters has a similar effect.
+
+Clouds can have both warming and cooling effects on climate. They cool the planet by reflecting sunlight during the day, and they warm the planet by slowing the escape of heat to space (this is most apparent at night, as cloudy nights are usually warmer than clear nights).
+
+Climate change can lead to changes in the coverage, altitude, and reflectivity of clouds. These changes can then either amplify (positive feedback) or dampen (negative feedback) the original change. The net effect of these changes is likely an amplifying, or positive, feedback due mainly to increasing altitude of high clouds in the tropics, which makes them better able to trap heat, and reductions in coverage of lower-level clouds in the mid-latitudes, which reduces the amount of sunlight they reflect. The magnitude of this feedback is uncertain due to the complex nature of cloud/climate interactions.9
+
+1 Marvel, K. et al. (2023). Ch. 2: Climate Trends. Fifth National Climate Assessment. U.S. Global Change Research Program, Washington, DC, p. 2-11.
+
+5National Academy of Sciences. (2020). Climate change: evidence and causes: Update 2020. The National Academies Press, Washington, DC, p. 5.  doi: 10.17226/25733
+
+6 Wuebbles, D.J., D.W. Fahey, K.A. Hibbard, B. DeAngelo, S. Doherty, K. Hayhoe, R. Horton, J.P. Kossin, P.C. Taylor, A.M. Waple, and C.P. Weaver. (2017). Executive summary. In: Climate science special report: Fourth national climate assessment, volume I [Wuebbles, D.J., D.W. Fahey, K.A. Hibbard, D.J. Dokken, B.C. Stewart, & T.K. Maycock (eds.)]. U.S. Global Change Research Program, Washington, DC, p. 14. doi: 10.7930/J0DJ5CTG
+
+7Leung, L. R. et al (2023) Ch. 3 Earth Systems Processes. Fifth National Climate Assessment. U.S. Global Change Research Program, Washington, DC, p. 3-42.
+
+8Myhre, G., D. Shindell, F.-M. Bréon, W. Collins, J. Fuglestvedt, J. Huang, D. Koch, J.-F. Lamarque, D. Lee, B. Mendoza, T. Nakajima, A. Robock, G. Stephens, T. Takemura & H. Zhang. (2013). Anthropogenic and natural radiative forcing. In: Climate change 2013: The physical science basis. Working Group I contribution to the fifth assessment report of the Intergovernmental Panel on Climate Change [Stocker, T.F., D. Qin, G.-K. Plattner, M. Tignor, S.K. Allen, J. Boschung, A. Nauels, Y. Xia, V. Bex and P.M. Midgley (eds.)]. Cambridge University Press, Cambridge, United Kingdom, and New York, NY, p. 685.
+
+9Leung, L.R. et al. (2023). Ch. 3: Earth Systems Processes. Fifth National Climate Assessment. U.S. Global Change Research Program, Washington, DC, p. 3-37.
