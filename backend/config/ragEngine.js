@@ -1,4 +1,4 @@
-const { Ollama } = require("@langchain/community/llms/ollama");
+const { Ollama } = require("@langchain/ollama"); // 💖 Fixed: Using the modern standalone package integration path
 const axios = require("axios");
 
 class CarbonRAGEngine {

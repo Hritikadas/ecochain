@@ -10,10 +10,18 @@ router.post('/chat', async (req, res) => {
     return res.status(400).json({ error: 'Message payload parameters missing.' });
   }
 
-  // Stream query down to our fresh engine class
-  const aiResponseText = await ecochainRAG.askChatbot(message, history || "");
-  
-  res.json({ response: aiResponseText });
+  try {
+    // Stream query down to our fresh engine class layer
+    const aiResponseText = await ecochainRAG.askChatbot(message, history || "");
+    
+    return res.json({ response: aiResponseText });
+  } catch (error) {
+    console.error('🚨 Error caught inside AI Routing Layer:', error);
+    return res.status(500).json({ 
+      error: 'Failed to communicate with local AI Core Engine.',
+      details: error.message 
+    });
+  }
 });
 
 module.exports = router;

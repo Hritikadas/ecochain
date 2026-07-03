@@ -13,6 +13,7 @@ const placeRoutes = require('./routes/places');
 const offsetRoutes = require('./routes/offset');
 const certificateRoutes = require('./routes/certificates');
 const achievementRoutes = require('./routes/achievements');
+const aiRoutes = require('./routes/ai');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -35,6 +36,7 @@ app.use('/api/places', placeRoutes);
 app.use('/api/offset', offsetRoutes);
 app.use('/api/certificates', certificateRoutes);
 app.use('/api/achievements', achievementRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Base Health-Check Route Endpoint
 app.get('/api/health', (req, res) => {
