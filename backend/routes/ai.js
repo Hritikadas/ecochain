@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const ecochainRAG = require('../config/ragEngine');
+const { authenticateToken } = require('../middleware/auth');
 
 // POST /api/ai/chat
-router.post('/chat', async (req, res) => {
+router.post('/chat', authenticateToken, async (req, res) => {
   const { message, history } = req.body;
 
   if (!message) {

@@ -3,10 +3,17 @@ const router = express.Router();
 const StellarSdk = require('stellar-sdk');
 const { server, network, publicKey, secretKey } = require('../config/stellar');
 const db = require('../config/database');
+const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 
 // Buy carbon credits with REAL Stellar transaction
-router.post('/buy', async (req, res) => {
+router.post('/buy', authenticateToken, async (req, res) => {
   const { user_id, amount_usd } = req.body;
+  
+  // Security Verification: Ensure regular users cannot buy offsets on behalf of another user
+  const targetUid = user_id || req.user.userId;
+  if (req.user.role !== 'admin' && parseInt(targetUid) !== req.user.userId) {
+    return res.status(403).json({ error: 'Forbidden: You are unauthorized to execute purchases for this user profile.' });
+  }
   
   try {
     if (amount_usd < 1) {
@@ -62,7 +69,7 @@ router.post('/buy', async (req, res) => {
     db.run(
       `INSERT INTO offsets (user_id, amount_usd, trees_planted, stellar_tx_hash, xlm_amount) 
        VALUES (?, ?, ?, ?, ?)`,
-      [user_id, amount_usd, trees_planted, stellarTxHash, (xlm_amount / 10000000)],
+      [targetUid, amount_usd, trees_planted, stellarTxHash, (xlm_amount / 10000000)],
       (err) => {
         if (err) {
           // Create table if not exists
@@ -81,7 +88,7 @@ router.post('/buy', async (req, res) => {
           db.run(
             `INSERT INTO offsets (user_id, amount_usd, trees_planted, stellar_tx_hash, xlm_amount) 
              VALUES (?, ?, ?, ?, ?)`,
-            [user_id, amount_usd, trees_planted, stellarTxHash, (xlm_amount / 10000000)],
+            [targetUid, amount_usd, trees_planted, stellarTxHash, (xlm_amount / 10000000)],
             (err2) => {
               if (err2) {
                 console.error('DB insert error:', err2);
@@ -124,8 +131,13 @@ router.post('/buy', async (req, res) => {
 });
 
 // Get user's carbon offsets
-router.get('/user/:user_id', (req, res) => {
+router.get('/user/:user_id', authenticateToken, (req, res) => {
   const { user_id } = req.params;
+  
+  // Security Verification: Ensure regular users cannot view other profiles' offsets
+  if (req.user.role !== 'admin' && parseInt(user_id) !== req.user.userId) {
+    return res.status(403).json({ error: 'Forbidden: You are unauthorized to view another profile\'s offset registry.' });
+  }
   
   db.all(
     `SELECT * FROM offsets WHERE user_id = ? ORDER BY created_at DESC`,
@@ -160,7 +172,7 @@ router.get('/total', (req, res) => {
 });
 
 // Verify transaction on Stellar
-router.get('/verify/:txHash', async (req, res) => {
+router.get('/verify/:txHash', authenticateToken, async (req, res) => {
   const { txHash } = req.params;
   
   try {
@@ -185,7 +197,7 @@ router.get('/verify/:txHash', async (req, res) => {
 });
 
 // Check wallet balance
-router.get('/balance', async (req, res) => {
+router.get('/balance', authenticateToken, authorizeRoles('admin'), async (req, res) => {
   try {
     const account = await server.loadAccount(publicKey);
     
