@@ -1,47 +1,68 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
+const asyncHandler = require('../middleware/asyncHandler');
+const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 
-// 1. Fetch green coordinates with filtering support
-// GET http://localhost:3000/api/places?type=ev
-router.get('/', (req, res) => {
-  const { type } = req.query;
-
-  if (type && type !== 'all') {
-    // Filtered lookup matching Leaflet short-keys
-    db.all('SELECT * FROM places WHERE type = ?', [type], (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json(rows);
-    });
-  } else {
-    // Default fetch-all query
+// =========================================================================
+// 1. GET /api/places -> PUBLIC ACCESS (No middleware guards)
+// =========================================================================
+router.get('/', asyncHandler(async (req, res) => {
+  return new Promise((resolve, reject) => {
     db.all('SELECT * FROM places', [], (err, rows) => {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json(rows);
+      if (err) {
+        res.status(500);
+        return reject(new Error('Failed to fetch geospatial map markers.'));
+      }
+      res.json(rows || []);
+      resolve();
     });
+  });
+}));
+
+// =========================================================================
+// 2. POST /api/places -> SECURED (Requires active login AND Admin clearance) 🛡️
+// =========================================================================
+router.post('/', authenticateToken, authorizeRoles('admin'), asyncHandler(async (req, res) => {
+  const { name, latitude, longitude, description } = req.body;
+
+  if (!name || !latitude || !longitude) {
+    res.status(400);
+    throw new Error('Validation Fault: Spatial coordinates parameters missing.');
   }
-});
 
-// 2. Add community location matching React Leaflet structure
-// POST http://localhost:3000/api/places/add
-router.post('/add', (req, res) => {
-  const { name, type, latitude, longitude, note } = req.body;
+  // Ensure table exists
+  await new Promise((resolve, reject) => {
+    db.run(`
+      CREATE TABLE IF NOT EXISTS places (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        latitude REAL NOT NULL,
+        longitude REAL NOT NULL,
+        description TEXT
+      )
+    `, (err) => err ? reject(err) : resolve());
+  });
 
-  if (!name || !type || !latitude || !longitude) {
-    return res.status(400).json({ error: 'Missing critical geographic fields parameters.' });
-  }
-
-  db.run(
-    `INSERT INTO places (name, type, latitude, longitude, description) VALUES (?, ?, ?, ?, ?)`,
-    [name, type, parseFloat(latitude), parseFloat(longitude), note || ''],
-    function (err) {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({
-        id: this.lastID,
-        message: 'New eco node mapped successfully! 🗺️'
-      });
-    }
-  );
-});
+  // Safe insertion
+  return new Promise((resolve, reject) => {
+    db.run(
+      `INSERT INTO places (name, latitude, longitude, description) VALUES (?, ?, ?, ?)`,
+      [name, latitude, longitude, description || ''],
+      function (err) {
+        if (err) {
+          res.status(500);
+          return reject(new Error('Failed to provision new spatial tracking node.'));
+        }
+        res.status(201).json({
+          success: true,
+          placeId: this.lastID,
+          message: 'New eco tracking node written to data maps cleanly.'
+        });
+        resolve();
+      }
+    );
+  });
+}));
 
 module.exports = router;

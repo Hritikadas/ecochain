@@ -2,59 +2,77 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 const StellarSdk = require('@stellar/stellar-sdk');
-const { server, keypair, secretKey } = require('../config/stellar');
+const { server, secretKey } = require('../config/stellar');
+const asyncHandler = require('../middleware/asyncHandler');
+const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 
 // =========================================================================
-// FEATURE 1: GET REAL-TIME BADGES & DYNAMIC LEADERBOARD (CALCULATED LIVE)
+// FEATURE 1: GET REAL-TIME BADGES & DYNAMIC LEADERBOARD -> USER ACCESS 🔑
 // =========================================================================
-router.get('/user/:userId', (req, res) => {
+router.get('/user/:userId', authenticateToken, asyncHandler(async (req, res) => {
   const { userId } = req.params;
 
-  // 1. Fetch this specific user's earned badges from the database
-  db.all('SELECT * FROM badges WHERE user_id = ?', [userId], (err, badgeRows) => {
-    if (err) {
-      console.error('🚨 DB Error fetching badges:', err.message);
-      return res.status(500).json({ error: 'Database read error during badge array fetch.' });
-    }
+  // Security Verification: Ensure regular users cannot spy on other user profile states
+  if (req.user.role !== 'admin' && parseInt(userId) !== req.user.userId) {
+    res.status(403);
+    throw new Error('Forbidden: You are unauthorized to view another profile\'s milestone registry.');
+  }
 
-    // 2. Dynamic aggregation: Sum up real offsets logged by this user across the platform
+  // 1. Fetch this specific user's earned badges from the database
+  const badgeRows = await new Promise((resolve, reject) => {
+    db.all('SELECT * FROM badges WHERE user_id = ?', [userId], (err, rows) => {
+      if (err) {
+        console.error('🚨 DB Error fetching badges:', err.message);
+        res.status(500);
+        return reject(new Error('Database read error during badge array fetch.'));
+      }
+      resolve(rows || []);
+    });
+  });
+
+  // 2. Dynamic aggregation: Sum up real offsets logged by this user across the platform
+  const offsetStats = await new Promise((resolve, reject) => {
     db.get(
       'SELECT SUM(trees_planted) as total_trees, SUM(amount_usd) as total_spent FROM offsets WHERE user_id = ?',
       [userId],
-      (err, offsetStats) => {
+      (err, row) => {
         if (err) {
           console.error('🚨 DB Error calculating metrics:', err.message);
-          return res.status(500).json({ error: 'Database aggregation processing error.' });
+          res.status(500);
+          return reject(new Error('Database aggregation processing error.'));
         }
-
-        // 3. Compile the true, live statistical rank object
-        const realLeaderboardMetrics = {
-          user_id: parseInt(userId),
-          username: "Hritika Das (User #1)",
-          total_trees: offsetStats?.total_trees || 0,
-          total_spent: offsetStats?.total_spent || 0,
-          badges_count: badgeRows ? badgeRows.length : 0
-        };
-
-        // Return live state straight to the UI
-        return res.json({
-          badges: badgeRows || [],
-          leaderboard: [realLeaderboardMetrics]
-        });
+        resolve(row);
       }
     );
   });
-});
+
+  // 3. Compile the true, live statistical rank object
+  const realLeaderboardMetrics = {
+    user_id: parseInt(userId),
+    username: req.user.name || `User #${userId}`,
+    total_trees: offsetStats?.total_trees || 0,
+    total_spent: offsetStats?.total_spent || 0,
+    badges_count: badgeRows.length
+  };
+
+  return res.json({
+    badges: badgeRows,
+    leaderboard: [realLeaderboardMetrics]
+  });
+}));
 
 // =========================================================================
-// FEATURE 2: FULLY FUNCTIONAL SECURED MINT PIPELINE WITH LIVE DB SAVING
+// FEATURE 2: FUNCTIONAL SECURED MINT PIPELINE -> ADMIN CLEARANCE ONLY 🛡️
 // =========================================================================
-router.post('/mint', async (req, res) => {
+router.post('/mint', authenticateToken, authorizeRoles('admin'), asyncHandler(async (req, res) => {
   const { user_id, badge_title, badge_type } = req.body;
-  const targetUid = user_id || 1;
+  
+  // Dynamically default to the admin's own execution context if a target user isn't supplied
+  const targetUid = user_id || req.user.userId;
 
   if (!badge_title || !badge_type) {
-    return res.status(400).json({ error: 'Missing functional badge structural classification parameters.' });
+    res.status(400);
+    throw new Error('Missing functional badge structural classification parameters.');
   }
 
   let finalTxHash;
@@ -85,46 +103,51 @@ router.post('/mint', async (req, res) => {
 
   } catch (blockchainError) {
     console.warn('⚠️ Stellar Sandbox timeout or sequence sync lock. Running safe local cryptographic fallback...');
-    // Generate a mathematically valid fallback transaction format if testnet blocks slow down
     finalTxHash = 'tx_' + Math.random().toString(36).substring(2, 11) + Date.now().toString(16);
   }
 
   // 🗄️ STEP B: Write the record directly to your persistent SQLite Database row
-  db.run(
-    `INSERT INTO badges (user_id, badge_title, badge_type, stellar_tx_hash) VALUES (?, ?, ?, ?)`,
-    [targetUid, badge_title, badge_type, finalTxHash],
-    function (err) {
-      if (err) {
-        console.error('🚨 SQLite Write Crash on Mint:', err.message);
-        return res.status(500).json({ error: 'Failed to write minted asset row into local storage ledger.' });
-      }
-
-      // 🔄 STEP C: Automatically award impact credits to the user's leaderboard stats on successful mint!
-      let simulatedTrees = 0;
-      let simulatedInvestment = 0;
-
-      if (badge_type === 'tree_champion') { simulatedTrees = 100; simulatedInvestment = 250; }
-      else if (badge_type === 'carbon_warrior') { simulatedTrees = 50; simulatedInvestment = 125; }
-      else { simulatedTrees = 20; simulatedInvestment = 50; }
-
-      db.run(
-        `INSERT INTO offsets (user_id, trees_planted, amount_usd) VALUES (?, ?, ?)`,
-        [targetUid, simulatedTrees, simulatedInvestment],
-        (offsetErr) => {
-          if (offsetErr) console.error('⚠️ Secondary metric tracking write delayed:', offsetErr.message);
-          
-          // Return valid database row identifiers back to your React app view layer
-          return res.json({
-            id: this.lastID,
-            badge_title,
-            badge_type,
-            stellar_tx_hash: finalTxHash,
-            message: "Asset row written to database and settled successfully!"
-          });
+  const lastInsertedId = await new Promise((resolve, reject) => {
+    db.run(
+      `INSERT INTO badges (user_id, badge_title, badge_type, stellar_tx_hash) VALUES (?, ?, ?, ?)`,
+      [targetUid, badge_title, badge_type, finalTxHash],
+      function (err) {
+        if (err) {
+          console.error('🚨 SQLite Write Crash on Mint:', err.message);
+          res.status(500);
+          return reject(new Error('Failed to write minted asset row into local storage ledger.'));
         }
-      );
-    }
-  );
-});
+        resolve(this.lastID);
+      }
+    );
+  });
+
+  // 🔄 STEP C: Automatically award impact credits to the user's leaderboard stats on successful mint
+  let simulatedTrees = 0;
+  let simulatedInvestment = 0;
+
+  if (badge_type === 'tree_champion') { simulatedTrees = 100; simulatedInvestment = 250; }
+  else if (badge_type === 'carbon_warrior') { simulatedTrees = 50; simulatedInvestment = 125; }
+  else { simulatedTrees = 20; simulatedInvestment = 50; }
+
+  await new Promise((resolve) => {
+    db.run(
+      `INSERT INTO offsets (user_id, trees_planted, amount_usd) VALUES (?, ?, ?)`,
+      [targetUid, simulatedTrees, simulatedInvestment],
+      (offsetErr) => {
+        if (offsetErr) console.error('⚠️ Secondary metric tracking write delayed:', offsetErr.message);
+        resolve(); // Resolve anyway to avoid blocking the primary execution thread completion response
+      }
+    );
+  });
+
+  return res.json({
+    id: lastInsertedId,
+    badge_title,
+    badge_type,
+    stellar_tx_hash: finalTxHash,
+    message: "Asset row written to database and settled successfully!"
+  });
+}));
 
 module.exports = router;

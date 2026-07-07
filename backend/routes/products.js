@@ -1,24 +1,30 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
+const asyncHandler = require('../middleware/asyncHandler');
+const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 
 // =========================================================================
-// 1. GET ALL PRODUCTS (READ LEDGER)
+// 1. GET ALL PRODUCTS (READ LEDGER) -> PUBLIC ACCESS
 // =========================================================================
-router.get('/', (req, res) => {
-  db.all('SELECT * FROM products', [], (err, rows) => {
-    if (err) {
-      console.error('🚨 Error reading products from DB:', err.message);
-      return res.status(500).json({ error: 'Database read error' });
-    }
-    res.json(rows || []);
+router.get('/', asyncHandler(async (req, res) => {
+  return new Promise((resolve, reject) => {
+    db.all('SELECT * FROM products', [], (err, rows) => {
+      if (err) {
+        console.error('🚨 Error reading products from DB:', err.message);
+        res.status(500);
+        return reject(new Error('Database read error'));
+      }
+      res.json(rows || []);
+      resolve();
+    });
   });
-});
+}));
 
 // =========================================================================
-// 2. POST ENDPOINT WITH AUTO-INITIALIZATION & FLEXIBLE SCHEMA MAPPING
+// 2. POST PRODUCT -> SECURED HIGH-LEVEL ACCESS LAYER (ADMIN ONLY) 🛡️
 // =========================================================================
-router.post('/', (req, res) => {
+router.post('/', authenticateToken, authorizeRoles('admin'), asyncHandler(async (req, res) => {
   // Destructure whatever names your frontend form might be sending
   const { 
     title, productName, product_name, name,
@@ -42,42 +48,49 @@ router.post('/', (req, res) => {
   const rawAssetCode = stellar_asset_code || assetCode || 'ECO';
   const finalAssetCode = rawAssetCode.replace(/[^a-zA-Z0-9]/g, '').substring(0, 6).toUpperCase() || 'ECOSEC';
 
-  console.log(`📥 Processing product write request: "${finalTitle}"`);
+  console.log(`📥 Processing admin-authorized product write request: "${finalTitle}" by Admin ID: ${req.user.userId}`);
 
   // 🛡️ Safety Guardrail: Dynamically initialize table parameters if running on empty cloud host (Render)
-  db.run(`
-    CREATE TABLE IF NOT EXISTS products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      description TEXT,
-      price REAL NOT NULL,
-      seller TEXT,
-      stellar_asset_code TEXT,
-      category TEXT,
-      certificate_url TEXT,
-      stellar_tx_hash TEXT
-    )
-  `, (tableErr) => {
-    if (tableErr) {
-      console.error('🚨 Database schema synchronization failure:', tableErr.message);
-      return res.status(500).json({ error: 'Database schema synchronization failed.' });
-    }
+  await new Promise((resolve, reject) => {
+    db.run(`
+      CREATE TABLE IF NOT EXISTS products (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        description TEXT,
+        price REAL NOT NULL,
+        seller TEXT,
+        stellar_asset_code TEXT,
+        category TEXT,
+        certificate_url TEXT,
+        stellar_tx_hash TEXT
+      )
+    `, (tableErr) => {
+      if (tableErr) {
+        console.error('🚨 Database schema synchronization failure:', tableErr.message);
+        res.status(500);
+        return reject(new Error('Database schema synchronization failed.'));
+      }
+      resolve();
+    });
+  });
 
-    // Generate a secure default mock transaction hash to populate the field
-    const finalTxHash = `mock_tx_${Date.now()}`;
+  // Generate a secure default mock transaction hash to populate the field
+  const finalTxHash = `mock_tx_${Date.now()}`;
 
-    // Execute the insertion row block using verified schema configurations
+  // Execute the insertion row block using verified schema configurations
+  return new Promise((resolve, reject) => {
     db.run(
       `INSERT INTO products (title, description, price, seller, stellar_asset_code, category, certificate_url, stellar_tx_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [finalTitle, finalDesc, finalPrice, finalSeller, finalAssetCode, finalCategory, finalCertUrl, finalTxHash],
       function (err) {
         if (err) {
           console.error('🚨 SQLite insertion error on products table:', err.message);
-          return res.status(500).json({ error: 'Failed to write product asset to database.', details: err.message });
+          res.status(500);
+          return reject(new Error('Failed to write product asset to database.'));
         }
 
         console.log(`✨ Product successfully written to ecochain.db with ID: ${this.lastID}`);
-        return res.status(201).json({
+        res.status(201).json({
           success: true,
           id: this.lastID,
           title: finalTitle,
@@ -90,9 +103,10 @@ router.post('/', (req, res) => {
           stellar_tx_hash: finalTxHash,
           message: "Product catalog updated successfully!"
         });
+        resolve();
       }
     );
   });
-});
+}));
 
 module.exports = router;
