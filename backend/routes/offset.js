@@ -3,10 +3,13 @@ const router = express.Router();
 const StellarSdk = require('stellar-sdk');
 const { server, network, publicKey, secretKey } = require('../config/stellar');
 const db = require('../config/database');
+const asyncHandler = require('../middleware/asyncHandler');
 const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 
-// Buy carbon credits with REAL Stellar transaction
-router.post('/buy', authenticateToken, async (req, res) => {
+// =========================================================================
+// 1. BUY CARBON CREDITS -> SECURED USER ACCESS 🔑
+// =========================================================================
+router.post('/buy', authenticateToken, asyncHandler(async (req, res) => {
   const { user_id, amount_usd } = req.body;
   
   // Security Verification: Ensure regular users cannot buy offsets on behalf of another user
@@ -128,90 +131,109 @@ router.post('/buy', authenticateToken, async (req, res) => {
       });
     }
   }
-});
+}));
 
-// Get user's carbon offsets
-router.get('/user/:user_id', authenticateToken, (req, res) => {
+// =========================================================================
+// 2. GET USER CARBON OFFSETS -> SECURED USER/ADMIN ACCESS 🔑
+// =========================================================================
+router.get('/user/:user_id', authenticateToken, asyncHandler(async (req, res) => {
   const { user_id } = req.params;
   
   // Security Verification: Ensure regular users cannot view other profiles' offsets
   if (req.user.role !== 'admin' && parseInt(user_id) !== req.user.userId) {
-    return res.status(403).json({ error: 'Forbidden: You are unauthorized to view another profile\'s offset registry.' });
+    res.status(403);
+    throw new Error('Forbidden: You are unauthorized to view another profile\'s offset registry.');
   }
   
-  db.all(
-    `SELECT * FROM offsets WHERE user_id = ? ORDER BY created_at DESC`,
-    [user_id],
-    (err, rows) => {
-      if (err) {
-        res.status(500).json({ error: err.message });
-      } else {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT * FROM offsets WHERE user_id = ? ORDER BY created_at DESC`,
+      [user_id],
+      (err, rows) => {
+        if (err) {
+          console.error('🚨 DB Error fetching offsets:', err.message);
+          res.status(500);
+          return reject(new Error('Database read error during offset fetch.'));
+        }
         res.json(rows);
+        resolve();
       }
-    }
-  );
-});
+    );
+  });
+}));
 
-// Get total offsets for leaderboard
-router.get('/total', (req, res) => {
-  db.all(
-    `SELECT user_id, SUM(trees_planted) as total_trees, COUNT(*) as total_offsets, SUM(amount_usd) as total_spent 
-     FROM offsets 
-     GROUP BY user_id 
-     ORDER BY total_trees DESC 
-     LIMIT 10`,
-    [],
-    (err, rows) => {
-      if (err) {
-        res.status(500).json({ error: err.message });
-      } else {
-        res.json(rows);
+// =========================================================================
+// 3. GET TOTAL OFFSETS LEADERBOARD -> SECURED USER ACCESS 🔑
+// =========================================================================
+router.get('/total', authenticateToken, asyncHandler(async (req, res) => {
+  return new Promise((resolve, reject) => {
+    db.all(
+      `SELECT user_id, SUM(trees_planted) as total_trees, COUNT(*) as total_offsets, SUM(amount_usd) as total_spent 
+       FROM offsets 
+       GROUP BY user_id 
+       ORDER BY total_trees DESC 
+       LIMIT 10`,
+      [],
+      (err, rows) => {
+        if (err) {
+          console.error('🚨 DB Error fetching leaderboard:', err.message);
+          res.status(500);
+          return reject(new Error('Database aggregation error during leaderboard fetch.'));
+        }
+        res.json(rows || []);
+        resolve();
       }
-    }
-  );
-});
+    );
+  });
+}));
 
-// Verify transaction on Stellar
-router.get('/verify/:txHash', authenticateToken, async (req, res) => {
+// =========================================================================
+// 4. VERIFY STELLAR TRANSACTION -> SECURED USER ACCESS 🔑
+// =========================================================================
+router.get('/verify/:txHash', authenticateToken, asyncHandler(async (req, res) => {
   const { txHash } = req.params;
   
   try {
-    const transaction = await server.transaction(txHash);
+    const transaction = await server.transactions().transaction(txHash).call();
     
     res.json({
       verified: true,
       transaction: {
         hash: transaction.hash,
-        fee: transaction.fee,
+        fee: transaction.fee_charged,
         timestamp: transaction.created_at,
-        memo: transaction.memo?.value,
-        operations: transaction.operations
+        memo: transaction.memo,
+        successful: transaction.successful
       }
     });
   } catch (error) {
+    console.error('🚨 Stellar verification error:', error.message);
     res.status(404).json({ 
       verified: false,
       error: 'Transaction not found on Stellar network'
     });
   }
-});
+}));
 
-// Check wallet balance
-router.get('/balance', authenticateToken, authorizeRoles('admin'), async (req, res) => {
+// =========================================================================
+// 5. CHECK WALLET BALANCE -> ADMIN ONLY 🛡️
+// =========================================================================
+router.get('/balance', authenticateToken, authorizeRoles('admin'), asyncHandler(async (req, res) => {
   try {
     const account = await server.loadAccount(publicKey);
+    const nativeBalance = account.balances.find(b => b.asset_type === 'native');
     
     res.json({
       address: publicKey,
-      balance: account.balances.find(b => b.asset_type === 'native').balance,
-      sequence: account.sequence
+      balance: nativeBalance ? nativeBalance.balance : '0',
+      sequence: account.sequence,
+      message: 'Wallet balance retrieved successfully.'
     });
   } catch (error) {
-    res.status(500).json({ 
-      error: 'Failed to fetch balance',
-      details: error.message
-    });
+    console.error('🚨 Failed to fetch wallet balance:', error.message);
+    res.status(500);
+    throw new Error('Failed to retrieve Stellar wallet balance.');
   }
-});
+}));
 
 module.exports = router;
