@@ -5,43 +5,24 @@ const asyncHandler = require('../middleware/asyncHandler');
 const { authenticateToken } = require('../middleware/auth');
 
 // =========================================================================
-// PUBLIC ACCESS AUTHENTICATION ENDPOINTS
+// 1. PUBLIC ACCESS GATEWAYS
 // =========================================================================
-
-// User Registration - PUBLIC ACCESS
-router.post('/register', asyncHandler(authController.registerUser));
-
-// User Login - PUBLIC ACCESS
-router.post('/login', asyncHandler(authController.loginUser));
+router.post('/register', authController.registerUser);
+router.post('/login', authController.loginUser);
 
 // =========================================================================
-// SECURED AUTHENTICATED ENDPOINTS 🔑
+// 2. PROTECTED USER CONTEXT GATEWAYS
 // =========================================================================
-
-// Get User Profile - SECURED USER ACCESS
-router.get('/profile', authenticateToken, asyncHandler(async (req, res) => {
-  console.log(`✅ Profile access granted for User ID: ${req.user.userId} (${req.user.email})`);
-  
+router.get('/profile', authenticateToken, (req, res) => {
   return res.json({ 
-    success: true,
     message: 'Secure User Context Layer reached successfully.', 
-    authenticatedUser: {
-      userId: req.user.userId,
-      email: req.user.email,
-      name: req.user.name,
-      role: req.user.role
-    },
-    timestamp: new Date().toISOString()
+    authenticatedUser: req.user 
   });
-}));
+});
 
-// Verify Token Validity - SECURED USER ACCESS
 router.get('/verify', authenticateToken, asyncHandler(async (req, res) => {
   return res.json({
-    success: true,
-    valid: true,
     user: {
-      userId: req.user.userId,
       email: req.user.email,
       role: req.user.role
     },
