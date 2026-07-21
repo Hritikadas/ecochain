@@ -1,35 +1,29 @@
 const express = require('express');
 const router = express.Router();
-const ecochainRAG = require('../config/ragEngine');
 const asyncHandler = require('../middleware/asyncHandler');
 const { authenticateToken } = require('../middleware/auth');
+const ragEngine = require('../config/ragEngine');
 
 // =========================================================================
-// AI CHATBOT ENDPOINT -> SECURED USER ACCESS 🔑
+// POST /api/ai/chat — Authenticated AI Carbon Coach chat endpoint
 // =========================================================================
 router.post('/chat', authenticateToken, asyncHandler(async (req, res) => {
   const { message, history } = req.body;
 
-  // Validate required input parameters
-  if (!message) {
-    res.status(400);
-    throw new Error('Message payload parameters missing.');
+  if (!message || typeof message !== 'string' || !message.trim()) {
+    return res.status(400).json({ error: 'A non-empty "message" field is required.' });
   }
 
-  console.log(`🤖 AI Chat request from User ID: ${req.user.userId} - Message: "${message.substring(0, 50)}..."`);
+  // Accept either a plain string or an array of {role, content} messages
+  const chatHistoryText = Array.isArray(history)
+    ? history.map(h => `${h.role}: ${h.content}`).join('\n')
+    : (typeof history === 'string' ? history : '');
 
-  // Stream query down to RAG engine layer
-  const aiResponseText = await ecochainRAG.askChatbot(message, history || "");
-  
-  if (!aiResponseText) {
-    res.status(500);
-    throw new Error('AI engine returned empty response.');
-  }
+  const aiResponse = await ragEngine.askChatbot(message.trim(), chatHistoryText);
 
-  return res.json({ 
-    response: aiResponseText,
-    user_id: req.user.userId,
-    timestamp: new Date().toISOString()
+  return res.json({
+    response: aiResponse,
+    user: req.user?.email || null
   });
 }));
 
