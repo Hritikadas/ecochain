@@ -6,6 +6,14 @@ require('dotenv').config();
 // Import Core Database Context Configuration
 const db = require('./config/database');
 
+// Import Sequelize connection + models, and sync them (creates the `users` table if missing)
+const sequelize = require('./config/sequelize');
+const User = require('./models/User'); // ensures the model is registered before sync
+
+sequelize.sync()
+  .then(() => console.log('✅ Sequelize models synced (users table ready).'))
+  .catch((err) => console.error('🚨 Sequelize sync failed:', err.message));
+
 // Import Functional Feature App Route Controllers
 const productRoutes = require('./routes/products');
 const footprintRoutes = require('./routes/footprint');
