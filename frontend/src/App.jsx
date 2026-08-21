@@ -1,11 +1,12 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 
-// 📊 OPERATIONAL PLATFORM FEATURE DASHBOARDS
+// Pages & Components
 import AICoachWidget from './components/AICoachWidget';
 import GetStarted from './pages/GetStarted';
 import AuthGateway from './pages/AuthGateway';
 import Landing from './pages/Landing';
+import Profile from './pages/Profile';
 import Marketplace from './pages/Marketplace';
 import EcoMap from './pages/EcoMap';
 import CarbonOffset from './pages/CarbonOffset';
@@ -14,7 +15,7 @@ import Achievements from './pages/Achievements';
 import Certificates from './pages/Certificates';
 
 // =========================================================================
-// 🌎 EMBEDDED IN-LINE NAVBAR NAVIGATION COMPONENT
+// NAVIGATION HEADER
 // =========================================================================
 const NavigationHeader = () => {
   const location = useLocation();
@@ -23,9 +24,9 @@ const NavigationHeader = () => {
   const user = JSON.parse(localStorage.getItem('ecochain_user') || 'null');
 
   const linkStyle = (path) =>
-    `text-xs font-bold tracking-tight transition-colors px-3 py-2 rounded-lg ${
+    `text-xs font-bold tracking-tight transition-all duration-200 px-3 py-2 rounded-lg ${
       location.pathname === path
-        ? 'bg-emerald-50 text-emerald-700'
+        ? 'bg-emerald-50 text-emerald-700 shadow-sm'
         : 'text-slate-600 hover:text-emerald-600 hover:bg-slate-50'
     }`;
 
@@ -36,33 +37,32 @@ const NavigationHeader = () => {
   };
 
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-50 px-6 py-4">
+    <header className="bg-white/80 backdrop-blur-xl border-b border-slate-200/60 sticky top-0 z-50 px-6 py-3">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         <Link to="/home" className="flex items-center gap-2 group">
           <span className="text-xl">🌱</span>
           <span className="font-black text-lg text-slate-900 tracking-tight group-hover:text-emerald-600 transition-colors">
-            Ecochain
+            EcoChain
           </span>
         </Link>
 
-        <nav className="flex items-center gap-1.5">
+        <nav className="flex items-center gap-1">
           <Link to="/marketplace" className={linkStyle('/marketplace')}>🏪 Marketplace</Link>
-          <Link to="/map" className={linkStyle('/map')}>🗺️ Eco Map Tracker</Link>
-          <Link to="/offset" className={linkStyle('/offset')}>🌳 Carbon Marketplace</Link>
-          <Link to="/footprint" className={linkStyle('/footprint')}>📊 Carbon Analyzer</Link>
+          <Link to="/map" className={linkStyle('/map')}>🗺️ Eco Map</Link>
+          <Link to="/offset" className={linkStyle('/offset')}>🌳 Offsets</Link>
+          <Link to="/footprint" className={linkStyle('/footprint')}>📊 Analyzer</Link>
           <Link to="/achievements" className={linkStyle('/achievements')}>🏆 Badges</Link>
-          <Link to="/certificates" className={linkStyle('/certificates')}>📜 Certificates</Link>
+          <Link to="/certificates" className={linkStyle('/certificates')}>📜 Certs</Link>
 
-          {/* 👤 PROFILE + LOGOUT */}
-          <div className="flex items-center gap-1.5 ml-2 pl-2 border-l border-slate-200">
+          <div className="flex items-center gap-1 ml-2 pl-2 border-l border-slate-200">
             <Link to="/profile" className={linkStyle('/profile')}>
               👤 {user?.name?.split(' ')[0] || 'Profile'}
             </Link>
             <button
               onClick={handleLogout}
-              className="text-xs font-bold tracking-tight text-slate-600 hover:text-rose-600 hover:bg-rose-50 transition-colors px-3 py-2 rounded-lg cursor-pointer"
+              className="text-xs font-bold tracking-tight text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all duration-200 px-3 py-2 rounded-lg cursor-pointer"
             >
-              🚪 Logout
+              Logout
             </button>
           </div>
         </nav>
@@ -71,14 +71,14 @@ const NavigationHeader = () => {
   );
 };
 
-// Simple guard: redirect to /login if no token exists
+// Auth guard
 const RequireAuth = ({ children }) => {
   const token = localStorage.getItem('ecochain_token');
   return token ? children : <Navigate to="/login" replace />;
 };
 
 // =========================================================================
-// 🚀 MAIN APPLICATION ROUTING ROUTER INTERACTION SCHEMA
+// MAIN APP
 // =========================================================================
 function App() {
   return (
@@ -97,6 +97,7 @@ function App() {
                 <main className="flex-1 max-w-7xl w-full mx-auto p-6 animate-fadeIn">
                   <Routes>
                     <Route path="/home" element={<Landing />} />
+                    <Route path="/profile" element={<Profile />} />
                     <Route path="/marketplace" element={<Marketplace />} />
                     <Route path="/map" element={<EcoMap />} />
                     <Route path="/offset" element={<CarbonOffset />} />
