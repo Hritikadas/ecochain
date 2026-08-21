@@ -1,59 +1,65 @@
 const jwt = require('jsonwebtoken');
 
+const getJwtSecret = () => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    console.error('🚨 CRITICAL: JWT_SECRET environment variable is not set!');
+    console.error('   Generate one: node -e "console.log(require(\'crypto\').randomBytes(64).toString(\'hex\'))"');
+    process.exit(1);
+  }
+  return secret;
+};
+
 /**
- * High-Level Request Authenticator Gatekeeper
- * Intercepts incoming requests, decodes signed JWTs, and injects session variables.
+ * JWT Authentication Middleware
+ * Extracts and verifies the Bearer token from the Authorization header.
  */
 const authenticateToken = (req, res, next) => {
-  // Extract Authorization Header (Format: Bearer <TOKEN>)
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ 
-      error: 'Access Denied: Missing cryptographic identity token credentials.' 
+    return res.status(401).json({
+      error: 'Access Denied: No authentication token provided.'
     });
   }
 
   try {
-    // Validate signature authenticity against our host secret payload
-    const decodedPayload = jwt.verify(token, process.env.JWT_SECRET || 'fallback_eco_secret_key');
-    
-    // Inject the sanitized user context directly into the pipeline request state
-    req.user = decodedPayload;
-    
-    next(); // Pass control safely to the next controller layer
+    const decoded = jwt.verify(token, getJwtSecret());
+    req.user = decoded;
+    next();
   } catch (error) {
-    console.error('🚨 Cryptographic Token Parsing Failure:', error.message);
-    return res.status(403).json({ 
-      error: 'Forbidden: Session validation token has expired or is structurally malformed.' 
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        error: 'Session expired. Please log in again.'
+      });
+    }
+    return res.status(403).json({
+      error: 'Invalid authentication token.'
     });
   }
 };
 
 /**
- * Flexible Role Checking Middleware Factory 🛡️
- * Restricts endpoint access dynamically by checking the injected user role array.
- * Use case: authorizeRoles('admin') or authorizeRoles('admin', 'moderator')
+ * Role-Based Authorization Middleware
+ * Restricts endpoint access by checking the user's role.
  */
 const authorizeRoles = (...allowedRoles) => {
   return (req, res, next) => {
-    // 1. Ensure the user has been verified by the authenticateToken middleware first
     if (!req.user) {
       return res.status(401).json({
-        error: 'Unauthorized: Authentication context is missing.'
+        error: 'Authentication required.'
       });
     }
 
-    // 2. Check if the user's role exists inside the allowedRoles parameters list
     if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
-        error: `Forbidden: Access denied. Your profile clearance role (${req.user.role}) is unauthorized to perform this operation.`
+        error: `Access denied. Role "${req.user.role}" is not authorized for this action.`
       });
     }
 
-    next(); // Pass control safely to the next controller layer
+    next();
   };
 };
 
-module.exports = { authenticateToken, authorizeRoles };
+module.exports = { authenticateToken, authorizeRoles, getJwtSecret };
