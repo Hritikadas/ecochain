@@ -1,111 +1,58 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../config/database');
+const Product = require('../models/Product');
 const asyncHandler = require('../middleware/asyncHandler');
 const { authenticateToken, authorizeRoles } = require('../middleware/auth');
 
 // =========================================================================
-// 1. GET ALL PRODUCTS (READ LEDGER) -> PUBLIC ACCESS
+// 1. GET ALL PRODUCTS -> PUBLIC ACCESS
 // =========================================================================
 router.get('/', asyncHandler(async (req, res) => {
-  return new Promise((resolve, reject) => {
-    db.all('SELECT * FROM products', [], (err, rows) => {
-      if (err) {
-        console.error('🚨 Error reading products from DB:', err.message);
-        res.status(500);
-        return reject(new Error('Database read error'));
-      }
-      res.json(rows || []);
-      resolve();
-    });
-  });
+  const products = await Product.findAll();
+  res.json(products);
 }));
 
 // =========================================================================
-// 2. POST PRODUCT -> SECURED HIGH-LEVEL ACCESS LAYER (ADMIN ONLY) 🛡️
+// 2. POST PRODUCT -> ADMIN ONLY 🛡️
 // =========================================================================
 router.post('/', authenticateToken, authorizeRoles('admin'), asyncHandler(async (req, res) => {
-  // Destructure whatever names your frontend form might be sending
-  const { 
+  const {
     title, productName, product_name, name,
-    description, 
+    description,
     price, cost,
-    seller, 
+    seller,
     stellar_asset_code, assetCode,
     category,
     certificateUrl, certificate_url
   } = req.body;
 
-  // Fallback defaults so the SQL query never fails due to a missing field
   const finalTitle = title || productName || product_name || name || 'Unnamed Eco Asset';
   const finalDesc = description || 'No description provided.';
   const finalPrice = parseFloat(price || cost) || 29.99;
   const finalSeller = seller || 'Independent Eco Vendor';
   const finalCategory = category || 'Renewable Energy';
   const finalCertUrl = certificateUrl || certificate_url || '';
-  
-  // Create a clean fallback asset code matching Stellar standards
+
   const rawAssetCode = stellar_asset_code || assetCode || 'ECO';
   const finalAssetCode = rawAssetCode.replace(/[^a-zA-Z0-9]/g, '').substring(0, 6).toUpperCase() || 'ECOSEC';
-
-  console.log(`📥 Processing admin-authorized product write request: "${finalTitle}" by Admin ID: ${req.user.userId}`);
-
-  // 🛡️ Safety Guardrail: Dynamically initialize table parameters if running on empty cloud host (Render)
-  await new Promise((resolve, reject) => {
-    db.run(`
-      CREATE TABLE IF NOT EXISTS products (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        description TEXT,
-        price REAL NOT NULL,
-        seller TEXT,
-        stellar_asset_code TEXT,
-        category TEXT,
-        certificate_url TEXT,
-        stellar_tx_hash TEXT
-      )
-    `, (tableErr) => {
-      if (tableErr) {
-        console.error('🚨 Database schema synchronization failure:', tableErr.message);
-        res.status(500);
-        return reject(new Error('Database schema synchronization failed.'));
-      }
-      resolve();
-    });
-  });
-
-  // Generate a secure default mock transaction hash to populate the field
   const finalTxHash = `mock_tx_${Date.now()}`;
 
-  // Execute the insertion row block using verified schema configurations
-  return new Promise((resolve, reject) => {
-    db.run(
-      `INSERT INTO products (title, description, price, seller, stellar_asset_code, category, certificate_url, stellar_tx_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [finalTitle, finalDesc, finalPrice, finalSeller, finalAssetCode, finalCategory, finalCertUrl, finalTxHash],
-      function (err) {
-        if (err) {
-          console.error('🚨 SQLite insertion error on products table:', err.message);
-          res.status(500);
-          return reject(new Error('Failed to write product asset to database.'));
-        }
+  const product = await Product.create({
+    title: finalTitle,
+    description: finalDesc,
+    price: finalPrice,
+    seller: finalSeller,
+    stellar_asset_code: finalAssetCode,
+    category: finalCategory,
+    certificate_url: finalCertUrl,
+    stellar_tx_hash: finalTxHash
+  });
 
-        console.log(`✨ Product successfully written to ecochain.db with ID: ${this.lastID}`);
-        res.status(201).json({
-          success: true,
-          id: this.lastID,
-          title: finalTitle,
-          description: finalDesc,
-          price: finalPrice,
-          seller: finalSeller,
-          stellar_asset_code: finalAssetCode,
-          category: finalCategory,
-          certificate_url: finalCertUrl,
-          stellar_tx_hash: finalTxHash,
-          message: "Product catalog updated successfully!"
-        });
-        resolve();
-      }
-    );
+  res.status(201).json({
+    success: true,
+    id: product.id,
+    ...product.toJSON(),
+    message: 'Product catalog updated successfully!'
   });
 }));
 
