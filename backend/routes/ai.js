@@ -27,4 +27,12 @@ router.post('/chat', authenticateToken, asyncHandler(async (req, res) => {
   });
 }));
 
+// =========================================================================
+// GET /api/ai/status — AI service health check
+// =========================================================================
+router.get('/status', asyncHandler(async (req, res) => {
+  const status = ragEngine.getStatus();
+  return res.json(status);
+}));
+
 module.exports = router;
