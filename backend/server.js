@@ -38,7 +38,9 @@ app.use(helmet({
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
+  'http://localhost:5175',
   'http://localhost:3000',
+  'https://ecochain-mu.vercel.app',
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
@@ -49,11 +51,16 @@ app.use(cors({
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
+    // Allow any Vercel preview/production deployment
+    if (/^https:\/\/.*\.vercel\.app$/.test(origin)) {
+      return callback(null, true);
+    }
     // In development, allow all origins
     if (process.env.NODE_ENV !== 'production') {
       return callback(null, true);
     }
-    return callback(new Error('CORS policy violation: Origin not allowed.'));
+    // Reject without throwing — avoids 500 crash in Express error handler
+    return callback(null, false);
   },
   credentials: true
 }));

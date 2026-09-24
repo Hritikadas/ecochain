@@ -79,7 +79,15 @@ const AuthGateway = () => {
         setTimeout(() => navigate('/home'), 800);
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Something went wrong. Please try again.');
+      if (err.response) {
+        // Server responded with an error status
+        setError(err.response.data?.error || 'Something went wrong. Please try again.');
+      } else if (err.request) {
+        // Request was made but no response received (CORS, network, server down)
+        setError('Unable to reach the server. Please check your connection and try again.');
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

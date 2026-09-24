@@ -5,6 +5,8 @@
  * Works with both PostgreSQL (Supabase) and SQLite (local dev).
  */
 const { sequelize, Product, Offset, Place, FootprintLog, Certificate } = require('../models');
+const User = require('../models/User');
+const bcrypt = require('bcryptjs');
 
 async function initializeDatabase() {
   try {
@@ -20,6 +22,20 @@ async function initializeDatabase() {
     const productCount = await Product.count();
     if (productCount === 0) {
       console.log('🌱 Database fresh — seeding baseline assets...');
+
+      // Seed default admin user (user_id = 1)
+      const userCount = await User.count();
+      if (userCount === 0) {
+        const salt = await bcrypt.genSalt(12);
+        const hashedPassword = await bcrypt.hash('EcoChain2026!', salt);
+        await User.create({
+          name: 'Hritika Das',
+          email: 'hritikadas14@gmail.com',
+          password: hashedPassword,
+          role: 'admin'
+        });
+        console.log('👤 Default admin user seeded (hritikadas14@gmail.com).');
+      }
 
       // Marketplace products
       await Product.bulkCreate([
