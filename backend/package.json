@@ -9,7 +9,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx jest --forceExit --detectOpenHandles",
+    "test:coverage": "npx jest --forceExit --detectOpenHandles --coverage"
   },
   "config": {
     "npm_config_legacy_peer_deps": "true"
@@ -34,5 +35,10 @@
     "sequelize": "6.37.8",
     "sqlite3": "^6.0.1",
     "stripe": "^22.2.0"
+  },
+  "devDependencies": {
+    "@jest/globals": "^30.5.2",
+    "jest": "^30.5.2",
+    "supertest": "^7.3.1"
   }
 }
