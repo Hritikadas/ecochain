@@ -8,7 +8,7 @@ module.exports = {
   // Test files live in __tests__/
   testMatch: ['**/__tests__/**/*.test.js'],
   // Set NODE_ENV before any modules load
-  setupFiles: ['./__tests__/envSetup.js'],
+  setupFiles: ['<rootDir>/__tests__/envSetup.js'],
   // Clear module cache between test files
   clearMocks: true,
   // Coverage (optional — run with --coverage)

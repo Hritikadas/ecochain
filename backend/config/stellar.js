@@ -1,4 +1,5 @@
-require('dotenv').config(); // Load environment variables from your .env file
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const { Horizon, Keypair } = require('@stellar/stellar-sdk');
 
 // Lazy-initialized Stellar connection

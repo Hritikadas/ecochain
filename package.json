@@ -1,4 +1,13 @@
 {
+  "name": "ecochain-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "npm test --prefix backend",
+    "test:coverage": "npm run test:coverage --prefix backend",
+    "build": "npm run build --prefix frontend",
+    "dev": "npm run dev --prefix backend"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "jsonwebtoken": "^9.0.3",
