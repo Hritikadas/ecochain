@@ -18,5 +18,6 @@ backend/dist/
 .vscode/
 .idea/
 
-# Markdown documentation files
+# Markdown documentation files (ignore internal docs, keep only root README)
 *.md
+!/README.md
