@@ -17,5 +17,6 @@ backend/dist/
 # IDE files
 .vscode/
 .idea/
+
+# Markdown documentation files
 *.md
-!README.md
