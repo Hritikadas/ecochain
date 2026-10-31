@@ -74,8 +74,32 @@ async function initializeDatabase() {
       // Eco map places
       await Place.bulkCreate([
         {
+          name: 'GreenVolt Ultra-Fast EV Hub',
+          description: '150kW DC fast charging station powered by 100% on-site solar rooftop arrays. Compatible with CCS2 and Type-2 connectors.',
+          latitude: 19.2183,
+          longitude: 72.9781,
+          status: 'Solar Powered',
+          type: 'ev'
+        },
+        {
+          name: 'Apex Circular E-Waste & Battery Recycling',
+          description: 'Certified R2 recycling facility collecting lithium batteries, consumer electronics, and rare metal scrap with zero landfill policy.',
+          latitude: 19.2055,
+          longitude: 72.9642,
+          status: 'Certified Recycler',
+          type: 'recycling'
+        },
+        {
+          name: 'Terra Greens Zero-Waste Co-op & Refill',
+          description: 'Package-free organic bulk grocery, local farm produce, and eco-friendly household essentials supporting regenerative farming.',
+          latitude: 19.2245,
+          longitude: 72.9814,
+          status: 'Verified Organic',
+          type: 'organic'
+        },
+        {
           name: 'Sanjay Gandhi National Park Canopy',
-          description: 'Active drone-monitored biomass expansion sector.',
+          description: 'Active drone-monitored biomass expansion sector and urban carbon sequestration reserve.',
           latitude: 19.2288,
           longitude: 72.9182,
           status: 'Verified Healthy',
@@ -83,11 +107,19 @@ async function initializeDatabase() {
         },
         {
           name: 'Thane Creek Mangrove Reserve',
-          description: 'Blue carbon tidal tracking arrays monitored via IoT modules.',
+          description: 'Blue carbon tidal tracking arrays and wetland bird sanctuary monitored via IoT modules.',
           latitude: 19.1693,
           longitude: 72.9964,
-          status: 'Restoration In Progress',
+          status: 'Restoration Active',
           type: 'park'
+        },
+        {
+          name: 'CleanCycle Community Composting & Glass Depo',
+          description: 'Neighborhood organic composting drop-off and glass bottle sterilizing & circular reuse center.',
+          latitude: 19.1820,
+          longitude: 72.9550,
+          status: 'Community Verified',
+          type: 'recycling'
         }
       ]);
 
