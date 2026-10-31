@@ -8,6 +8,8 @@ const { authenticateToken } = require('../middleware/auth');
 // =========================================================================
 router.post('/register', authController.registerUser);
 router.post('/login', authController.loginUser);
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/reset-password', authController.resetPassword);
 
 // =========================================================================
 // PROTECTED ROUTES (JWT required)

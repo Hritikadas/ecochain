@@ -220,3 +220,79 @@ describe('GET /api/auth/stats', () => {
     expect(typeof res.body.stats.badgesEarned).toBe('number');
   });
 });
+
+describe('POST /api/auth/forgot-password & /api/auth/reset-password', () => {
+  it('should generate a 6-digit reset code for an existing user', async () => {
+    const { user } = await createTestUser();
+
+    const res = await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email: user.email });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.resetCode).toBeDefined();
+    expect(res.body.resetCode.length).toBe(6);
+  });
+
+  it('should reject forgot-password for non-existent email', async () => {
+    const res = await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email: 'ghost_user_12345@test.com' });
+
+    expect(res.status).toBe(404);
+    expect(res.body.error).toMatch(/no account found/i);
+  });
+
+  it('should reset password with valid code and allow login with new password', async () => {
+    const testEmail = `reset_${Date.now()}@test.com`;
+    await request(app)
+      .post('/api/auth/register')
+      .send({ name: 'Reset User', email: testEmail, password: 'OldPassword1' });
+
+    // Request reset code
+    const forgotRes = await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email: testEmail });
+
+    const code = forgotRes.body.resetCode;
+
+    // Reset password
+    const resetRes = await request(app)
+      .post('/api/auth/reset-password')
+      .send({
+        email: testEmail,
+        code,
+        newPassword: 'BrandNewPassword1'
+      });
+
+    expect(resetRes.status).toBe(200);
+    expect(resetRes.body.success).toBe(true);
+
+    // Verify login with new password works
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: testEmail, password: 'BrandNewPassword1' });
+
+    expect(loginRes.status).toBe(200);
+    expect(loginRes.body.token).toBeDefined();
+  });
+
+  it('should reject reset with wrong code', async () => {
+    const { user } = await createTestUser();
+    await request(app)
+      .post('/api/auth/forgot-password')
+      .send({ email: user.email });
+
+    const res = await request(app)
+      .post('/api/auth/reset-password')
+      .send({
+        email: user.email,
+        code: '000000',
+        newPassword: 'BrandNewPassword1'
+      });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/invalid/i);
+  });
+});

@@ -18,7 +18,16 @@ const api = axios.create({
 // ─── Endpoints that should NEVER be E2E encrypted ──────────────────────
 // Auth endpoints use TLS for transport security; adding payload encryption
 // causes Web Crypto ↔ Node.js crypto interop issues and breaks login flow.
-const SKIP_ENCRYPTION_PATHS = ['/auth/register', '/auth/login', '/auth/verify', '/auth/profile', '/auth/change-password', '/auth/stats'];
+const SKIP_ENCRYPTION_PATHS = [
+  '/auth/register',
+  '/auth/login',
+  '/auth/verify',
+  '/auth/profile',
+  '/auth/change-password',
+  '/auth/stats',
+  '/auth/forgot-password',
+  '/auth/reset-password'
+];
 
 // ─── Request Interceptor ────────────────────────────────────────────────
 // Attach JWT + optionally encrypt the request body for sensitive endpoints
